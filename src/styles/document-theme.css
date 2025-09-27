@@ -1,0 +1,339 @@
+/* Document Animation Theme */
+
+:root {
+  /* Dark Document Theme Colors */
+  --doc-paper: #1f2937;
+  --doc-shadow: rgba(0, 0, 0, 0.4);
+  --doc-blue: #60a5fa;
+  --doc-accent: #818cf8;
+  --doc-text: #f9fafb;
+  --doc-bg: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+  --doc-border: rgba(148, 163, 184, 0.2);
+}
+
+/* Floating Document Background */
+.document-background {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  z-index: -1;
+  background: var(--doc-bg);
+}
+
+.floating-document {
+  position: absolute;
+  width: 40px;
+  height: 55px;
+  background: var(--doc-paper);
+  border-radius: 6px 6px 3px 3px;
+  box-shadow: 0 4px 12px var(--doc-shadow);
+  opacity: 0.4;
+  animation: float 20s infinite linear;
+  border: 1px solid var(--doc-border);
+}
+
+.floating-document::before {
+  content: '';
+  position: absolute;
+  top: 6px;
+  left: 6px;
+  right: 6px;
+  height: 1px;
+  background: var(--doc-blue);
+  border-radius: 1px;
+}
+
+.floating-document::after {
+  content: '';
+  position: absolute;
+  top: 12px;
+  left: 6px;
+  right: 8px;
+  height: 1px;
+  background: var(--doc-text);
+  opacity: 0.2;
+  box-shadow: 
+    0 4px 0 var(--doc-text),
+    0 8px 0 var(--doc-text),
+    0 12px 0 var(--doc-text);
+}
+
+/* Document Animation Keyframes */
+@keyframes float {
+  0% {
+    transform: translateY(100vh) rotate(0deg);
+    opacity: 0;
+  }
+  10% {
+    opacity: 0.7;
+  }
+  90% {
+    opacity: 0.7;
+  }
+  100% {
+    transform: translateY(-100px) rotate(360deg);
+    opacity: 0;
+  }
+}
+
+@keyframes gentle-float {
+  0%, 100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-20px) rotate(2deg);
+  }
+}
+
+/* Document Card Animations */
+.document-card {
+  /* Use design system background instead of --doc-paper for better contrast */
+  background: var(--bg-secondary);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-md);
+  border: 1px solid var(--border-default);
+  transition: all var(--transition-normal);
+  position: relative;
+  overflow: hidden;
+  color: var(--text-primary); /* Ensure text is visible in dark theme */
+}
+
+/* Ensure all text elements in document cards are visible */
+.document-card .document-title {
+  color: var(--text-primary);
+}
+
+.document-card .meta-item,
+.document-card .file-type-label {
+  color: var(--text-secondary);
+}
+
+.document-card .category-badge {
+  color: var(--text-primary);
+}
+
+.document-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 4px;
+  height: 100%;
+  background: linear-gradient(to bottom, var(--doc-blue), var(--doc-accent));
+  transform: scaleY(0);
+  transition: transform 0.3s ease;
+}
+
+.document-card:hover {
+  transform: translateY(-8px) scale(1.02);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+  animation: gentle-float 3s ease-in-out infinite;
+}
+
+.document-card:hover::before {
+  transform: scaleY(1);
+}
+
+/* Professional Button with Document Theme */
+.btn-document {
+  background: linear-gradient(135deg, var(--doc-blue), var(--doc-accent));
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-document::before {
+  content: '📄';
+  position: absolute;
+  left: -30px;
+  top: 50%;
+  transform: translateY(-50%);
+  transition: left 0.3s ease;
+  font-size: 16px;
+}
+
+.btn-document:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(59, 130, 246, 0.3);
+}
+
+.btn-document:hover::before {
+  left: 8px;
+}
+
+.btn-document:hover .btn-text {
+  margin-left: 25px;
+}
+
+.btn-text {
+  transition: margin-left 0.3s ease;
+}
+
+/* Navigation with Document Icons */
+.nav-document {
+  background: rgba(31, 41, 55, 0.95);
+  backdrop-filter: blur(10px);
+  border-radius: 16px;
+  padding: 8px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  border: 1px solid var(--doc-border);
+}
+
+.nav-item-document {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border-radius: 12px;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.nav-item-document::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(59, 130, 246, 0.1), transparent);
+  transition: left 0.5s ease;
+}
+
+.nav-item-document:hover {
+  background: rgba(96, 165, 250, 0.15);
+  transform: translateX(4px);
+}
+
+.nav-item-document:hover::before {
+  left: 100%;
+}
+
+.nav-icon {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, var(--doc-blue), var(--doc-accent));
+  color: white;
+  border-radius: 6px;
+  font-size: 14px;
+  transition: transform 0.3s ease;
+}
+
+.nav-item-document:hover .nav-icon {
+  transform: scale(1.1) rotate(5deg);
+}
+
+/* Document Upload Area */
+.upload-area {
+  border: 2px dashed var(--doc-blue);
+  border-radius: 16px;
+  padding: 40px;
+  text-align: center;
+  background: rgba(96, 165, 250, 0.08);
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.upload-area::before {
+  content: '📄';
+  position: absolute;
+  font-size: 60px;
+  opacity: 0.1;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) rotate(-15deg);
+  transition: all 0.3s ease;
+}
+
+.upload-area:hover {
+  border-color: var(--doc-accent);
+  background: rgba(129, 140, 248, 0.12);
+  transform: scale(1.02);
+}
+
+.upload-area:hover::before {
+  transform: translate(-50%, -50%) rotate(0deg) scale(1.1);
+  opacity: 0.2;
+}
+
+/* Document Grid Animation */
+.documents-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 24px;
+  padding: 24px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.document-item {
+  animation: slideInUp 0.6s ease-out;
+  animation-fill-mode: both;
+}
+
+.document-item:nth-child(1) { animation-delay: 0.1s; }
+.document-item:nth-child(2) { animation-delay: 0.2s; }
+.document-item:nth-child(3) { animation-delay: 0.3s; }
+.document-item:nth-child(4) { animation-delay: 0.4s; }
+.document-item:nth-child(5) { animation-delay: 0.5s; }
+
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Laptop and Desktop Optimizations */
+@media (min-width: 1024px) {
+  .documents-grid {
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 24px;
+    max-width: 1400px;
+    margin: 0 auto;
+  }
+  
+  .floating-document {
+    width: 50px;
+    height: 65px;
+  }
+}
+
+@media (min-width: 1440px) {
+  .documents-grid {
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: 32px;
+  }
+}
+
+/* Tablet and Mobile */
+@media (max-width: 768px) {
+  .floating-document {
+    width: 35px;
+    height: 50px;
+  }
+  
+  .documents-grid {
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 16px;
+    padding: 16px;
+  }
+}

@@ -1,0 +1,235 @@
+.login-page {
+  min-height: 100vh;
+  background: radial-gradient(ellipse at top, var(--primary-900) 0%, var(--bg-canvas) 70%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-4);
+  position: relative;
+  overflow: hidden;
+}
+
+.login-page::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: 
+    radial-gradient(circle at 25% 25%, rgba(31, 111, 235, 0.1) 0%, transparent 50%),
+    radial-gradient(circle at 75% 75%, rgba(165, 165, 255, 0.05) 0%, transparent 50%);
+  animation: float 20s ease-in-out infinite;
+  pointer-events: none;
+}
+
+.login-container {
+  width: 100%;
+  max-width: 440px;
+  z-index: 1;
+  position: relative;
+}
+
+.login-card {
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-backdrop);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-2xl);
+  box-shadow: var(--shadow-3d);
+  overflow: hidden;
+  animation: slideUp var(--duration-slow) ease-out;
+}
+
+.login-header {
+  background: linear-gradient(135deg, var(--primary-600), var(--primary-700));
+  color: var(--text-primary);
+  padding: var(--space-8);
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.login-header::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(45deg, transparent 30%, rgba(255,255,255,0.1) 50%, transparent 70%);
+  animation: shimmer 3s ease-in-out infinite;
+  pointer-events: none;
+}
+
+.app-icon {
+  font-size: 4rem;
+  margin-bottom: var(--space-4);
+  filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3));
+  animation: float 3s ease-in-out infinite;
+}
+
+.login-header h1 {
+  font-size: var(--text-2xl);
+  font-weight: var(--font-weight-bold);
+  margin-bottom: var(--space-2);
+  text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+  animation: fadeIn var(--duration-normal) ease-out var(--duration-fast);
+  animation-fill-mode: both;
+}
+
+.login-header p {
+  font-size: var(--text-sm);
+  opacity: 0.9;
+  margin: 0;
+  animation: fadeIn var(--duration-normal) ease-out calc(var(--duration-fast) * 1.5);
+  animation-fill-mode: both;
+}
+
+.login-content {
+  padding: var(--space-8);
+  text-align: center;
+  background: var(--bg-secondary);
+}
+
+.login-content h2 {
+  font-size: var(--text-xl);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-primary);
+  margin-bottom: var(--space-2);
+  animation: fadeIn var(--duration-normal) ease-out calc(var(--duration-fast) * 2);
+  animation-fill-mode: both;
+}
+
+.login-content p {
+  color: var(--text-secondary);
+  margin-bottom: var(--space-8);
+  font-size: var(--text-base);
+  animation: fadeIn var(--duration-normal) ease-out calc(var(--duration-fast) * 2.5);
+  animation-fill-mode: both;
+}
+
+.google-signin-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+  padding: var(--space-4) var(--space-6);
+  background: var(--bg-primary);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg);
+  font-size: var(--text-base);
+  font-weight: var(--font-weight-medium);
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: all var(--transition-normal);
+  position: relative;
+  overflow: hidden;
+  animation: slideUp var(--duration-normal) ease-out calc(var(--duration-fast) * 3);
+  animation-fill-mode: both;
+  box-shadow: var(--shadow-md);
+}
+
+.google-signin-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+  transition: left var(--transition-normal);
+}
+
+.google-signin-btn:hover::before {
+  left: 100%;
+}
+
+.google-signin-btn:hover {
+  background: var(--bg-tertiary);
+  border-color: var(--primary-500);
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: var(--shadow-xl), 0 0 20px rgba(31, 111, 235, 0.2);
+  color: var(--primary-400);
+}
+
+.google-signin-btn:active {
+  transform: translateY(-1px) scale(1.01);
+  transition: all var(--transition-fast);
+}
+
+/* Professional Loading Animation */
+.login-loading {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(13, 17, 23, 0.8);
+  backdrop-filter: blur(4px);
+  z-index: 10;
+}
+
+.login-spinner {
+  width: 2rem;
+  height: 2rem;
+  border: 2px solid var(--border-default);
+  border-top: 2px solid var(--primary-500);
+  border-radius: var(--radius-full);
+  animation: spin 1s linear infinite;
+}
+
+/* Responsive Design */
+@media (max-width: 480px) {
+  .login-page {
+    padding: var(--space-2);
+  }
+  
+  .login-header {
+    padding: var(--space-6);
+  }
+  
+  .login-content {
+    padding: var(--space-6);
+  }
+  
+  .app-icon {
+    font-size: 3rem;
+  }
+  
+  .login-header h1 {
+    font-size: var(--text-xl);
+  }
+  
+  .login-header p {
+    font-size: var(--text-xs);
+  }
+  
+  .login-content h2 {
+    font-size: var(--text-lg);
+  }
+  
+  .google-signin-btn {
+    padding: var(--space-3) var(--space-4);
+    font-size: var(--text-sm);
+    min-height: 48px;
+  }
+}
+
+@media (max-width: 360px) {
+  .login-container {
+    max-width: 100%;
+  }
+  
+  .login-header {
+    padding: var(--space-4);
+  }
+  
+  .login-content {
+    padding: var(--space-4);
+  }
+  
+  .app-icon {
+    font-size: 2.5rem;
+  }
+}

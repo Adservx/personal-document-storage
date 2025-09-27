@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Generate PWA Icons</title>
+</head>
+<body>
+    <canvas id="canvas" style="border: 1px solid #ccc;"></canvas>
+    <div id="downloads"></div>
+
+    <script>
+        const sizes = [16, 32, 64, 128, 192, 256, 512];
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        const downloads = document.getElementById('downloads');
+
+        // SVG content
+        const svgContent = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+          <defs>
+            <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" style="stop-color:#3b82f6"/>
+              <stop offset="100%" style="stop-color:#6366f1"/>
+            </linearGradient>
+            <linearGradient id="doc" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" style="stop-color:#ffffff"/>
+              <stop offset="100%" style="stop-color:#f1f5f9"/>
+            </linearGradient>
+          </defs>
+          <rect width="512" height="512" rx="80" fill="url(#bg)"/>
+          <path d="M180 120 h120 l40 40 v232 a20 20 0 0 1 -20 20 H180 a20 20 0 0 1 -20 -20 V140 a20 20 0 0 1 20 -20 z" fill="url(#doc)" stroke="#e2e8f0" stroke-width="2"/>
+          <path d="M300 120 v40 h40 z" fill="#e2e8f0"/>
+          <rect x="200" y="200" width="80" height="4" rx="2" fill="#64748b"/>
+          <rect x="200" y="220" width="100" height="4" rx="2" fill="#64748b"/>
+          <rect x="200" y="240" width="60" height="4" rx="2" fill="#64748b"/>
+          <rect x="200" y="280" width="90" height="4" rx="2" fill="#64748b"/>
+          <rect x="200" y="300" width="70" height="4" rx="2" fill="#64748b"/>
+          <path d="M256 320 c-30 0 -50 -20 -50 -50 v-40 c0 -30 20 -50 50 -50 s50 20 50 50 v40 c0 30 -20 50 -50 50 z" fill="#10b981" opacity="0.9"/>
+          <circle cx="256" cy="250" r="8" fill="white"/>
+          <rect x="252" y="250" width="8" height="12" rx="1" fill="white"/>
+        </svg>`;
+
+        function generateIcon(size) {
+            canvas.width = size;
+            canvas.height = size;
+            
+            const img = new Image();
+            const svgBlob = new Blob([svgContent], {type: 'image/svg+xml'});
+            const url = URL.createObjectURL(svgBlob);
+            
+            img.onload = function() {
+                ctx.clearRect(0, 0, size, size);
+                ctx.drawImage(img, 0, 0, size, size);
+                
+                canvas.toBlob(function(blob) {
+                    const link = document.createElement('a');
+                    link.download = `logo${size}.png`;
+                    link.href = URL.createObjectURL(blob);
+                    link.textContent = `Download ${size}x${size}`;
+                    link.style.display = 'block';
+                    link.style.margin = '5px 0';
+                    downloads.appendChild(link);
+                }, 'image/png');
+                
+                URL.revokeObjectURL(url);
+            };
+            
+            img.src = url;
+        }
+
+        // Generate all sizes
+        sizes.forEach(size => generateIcon(size));
+    </script>
+</body>
+</html>
