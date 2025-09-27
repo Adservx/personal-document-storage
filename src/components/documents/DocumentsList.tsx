@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { supabase } from '../../supabaseClient';
-import { useAuth } from '../../contexts/AuthContext';
+import { useSupabaseAuth } from '../../hooks/useSupabaseAuth';
 import { useProgress } from '../../contexts/ProgressContext';
 import { Document } from '../../types';
 import { DocumentCard } from './DocumentCard';
@@ -12,7 +12,7 @@ interface DocumentsListProps {
 }
 
 export const DocumentsList: React.FC<DocumentsListProps> = ({ refreshTrigger }) => {
-  const { user } = useAuth();
+  const { user, isReady } = useSupabaseAuth();
   const { addProgress, updateProgress } = useProgress();
   const [documents, setDocuments] = useState<Document[]>([]);
   const [loading, setLoading] = useState(true);
@@ -23,8 +23,8 @@ export const DocumentsList: React.FC<DocumentsListProps> = ({ refreshTrigger }) 
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
 
   const fetchDocuments = useCallback(async () => {
-    if (!user?.id) {
-      console.log('No user ID available, skipping fetch');
+    if (!user?.id || !isReady) {
+      console.log('User not ready or no user ID available, skipping fetch');
       setLoading(false);
       return;
     }
@@ -32,19 +32,8 @@ export const DocumentsList: React.FC<DocumentsListProps> = ({ refreshTrigger }) 
     try {
       setLoading(true);
       
-      // Get the authenticated user ID from Supabase
-      const { data: { user: authUser }, error: authError } = await supabase.auth.getUser();
-      
-      if (authError) {
-        console.error('Auth error:', authError);
-        throw authError;
-      }
-      
-      const userId = authUser?.id || user.id;
-      
-      if (!userId) {
-        throw new Error('No user ID available');
-      }
+      // Use Firebase user ID directly since we're using Firebase auth
+      const userId = user.id;
       
       console.log('📋 Fetching documents for user:', userId);
       const { data, error } = await supabase
@@ -62,10 +51,15 @@ export const DocumentsList: React.FC<DocumentsListProps> = ({ refreshTrigger }) 
       setDocuments(data || []);
     } catch (error) {
       console.error('Error in fetchDocuments:', error);
+      // If there's an auth error, it might be because the user session expired
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      if (errorMessage.includes('Auth') || errorMessage.includes('session')) {
+        console.log('Authentication issue detected, user may need to re-login');
+      }
     } finally {
       setLoading(false);
     }
-  }, [user]);
+  }, [user, isReady]);
 
   useEffect(() => {
     fetchDocuments();

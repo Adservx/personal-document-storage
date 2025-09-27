@@ -1,6 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import { supabase } from '../supabaseClient';
-import { useAuth } from '../contexts/AuthContext';
+import { useSupabaseAuth } from '../hooks/useSupabaseAuth';
 import { useProgress } from '../contexts/ProgressContext';
 import { Header } from './layout/Header';
 import { UploadSection } from './documents/UploadSection';
@@ -9,14 +9,17 @@ import { ProgressBar } from './ProgressBar';
 import './MainApp.css';
 
 export const MainApp: React.FC = () => {
-  const { user } = useAuth();
+  const { user, isReady } = useSupabaseAuth();
   const { addProgress, updateProgress } = useProgress();
   const [loading, setLoading] = useState(false);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [currentPage, setCurrentPage] = useState<'upload' | 'documents'>('documents');
 
   const handleFileUpload = useCallback(async (file: File, category: string) => {
-    if (!user?.id) return;
+    if (!user?.id || !isReady) {
+      console.log('User not ready for upload');
+      return;
+    }
 
     // Validate file
     if (!file) return;
@@ -50,10 +53,8 @@ export const MainApp: React.FC = () => {
         .from('documents')
         .getPublicUrl(fileName);
 
-      const { data: { user: authUser }, error: authError } = await supabase.auth.getUser();
-      if (authError) throw new Error(`Authentication error: ${authError.message}`);
-      
-      const userId = authUser?.id || user.id;
+      // Use Firebase user ID directly since we're using Firebase auth
+      const userId = user.id;
       
       const documentData = {
         user_id: userId,
@@ -87,7 +88,7 @@ export const MainApp: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }, [user?.id, addProgress, updateProgress]);
+  }, [user?.id, isReady, addProgress, updateProgress]);
 
   return (
     <div className="main-app theme-transition">

@@ -21,25 +21,41 @@ export const supabase = createClient(supabaseUrl, supabaseKey, {
   }
 });
 
+// Helper function to create authenticated requests
+export const createAuthenticatedRequest = async (callback: (client: any) => Promise<any>) => {
+  const user = auth.currentUser;
+  if (!user) {
+    throw new Error('User not authenticated');
+  }
+  
+  const token = await user.getIdToken();
+  
+  // Create a client with auth headers for this request
+  const authenticatedClient = createClient(supabaseUrl, supabaseKey, {
+    auth: {
+      persistSession: false,
+      autoRefreshToken: false,
+      detectSessionInUrl: false
+    },
+    global: {
+      headers: {
+        'X-Client-Info': 'securedoc-manager',
+        'Authorization': `Bearer ${token}`,
+        'X-Firebase-UID': user.uid
+      }
+    }
+  });
+  
+  return callback(authenticatedClient);
+};
+
 // Set auth headers from Firebase
 let currentUser: any = null;
 
 auth.onAuthStateChanged(async (user) => {
   currentUser = user;
-  if (user) {
-    const token = await user.getIdToken();
-    supabase.auth.setSession({
-      access_token: token,
-      refresh_token: '',
-      expires_in: 3600,
-      token_type: 'bearer',
-      user: {
-        id: user.uid,
-        email: user.email || '',
-        user_metadata: {}
-      }
-    }).catch(() => {});
-  }
+  // Note: We'll handle auth headers in individual requests now
+  // since direct header manipulation can cause issues
 });
 
 export { currentUser };
