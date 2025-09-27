@@ -1,29 +1,16 @@
 {
   "short_name": "SecureDoc",
-  "name": "SecureDoc Manager - Professional Document Storage",
-  "description": "Professional document storage and management platform",
+  "name": "SecureDoc Manager",
+  "description": "Professional document storage platform",
   "icons": [
     {
       "src": "favicon.svg",
       "sizes": "any",
-      "type": "image/svg+xml",
-      "purpose": "any maskable"
-    },
-    {
-      "src": "logo.svg",
-      "sizes": "512x512",
-      "type": "image/svg+xml",
-      "purpose": "any maskable"
+      "type": "image/svg+xml"
     }
   ],
   "start_url": ".",
   "display": "standalone",
   "theme_color": "#3b82f6",
-  "background_color": "#f8fafc",
-  "orientation": "portrait-primary",
-  "categories": ["productivity", "business"],
-  "lang": "en",
-  "dir": "ltr",
-  "scope": "/",
-  "prefer_related_applications": false
+  "background_color": "#ffffff"
 }

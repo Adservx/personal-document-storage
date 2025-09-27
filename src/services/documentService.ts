@@ -1,13 +1,18 @@
 import { supabase } from '../supabaseClient';
+import { auth } from '../firebase';
 import type { Document, DocumentCategory, DocumentFilter, ApiResponse } from '../types';
 import { generateFileName } from '../utils/helpers';
 
 export class DocumentService {
   static async getDocuments(filter?: DocumentFilter): Promise<ApiResponse<Document[]>> {
     try {
+      const user = auth.currentUser;
+      if (!user) throw new Error('User not authenticated');
+
       let query = supabase
         .from('documents')
         .select('*')
+        .eq('user_id', user.uid)
         .order('created_at', { ascending: false });
 
       if (filter?.category) {
@@ -75,6 +80,9 @@ export class DocumentService {
         .from('documents')
         .getPublicUrl(filePath);
 
+      const user = auth.currentUser;
+      if (!user) throw new Error('User not authenticated');
+
       // Save document metadata
       const documentData = {
         name: file.name,
@@ -86,7 +94,8 @@ export class DocumentService {
         description: metadata?.description || null,
         tags: metadata?.tags || null,
         version: 1,
-        access_level: 'private' as const
+        access_level: 'private' as const,
+        user_id: user.uid
       };
 
       const { data, error: dbError } = await supabase
