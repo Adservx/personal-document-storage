@@ -21,8 +21,11 @@ export const supabase = createClient(supabaseUrl, supabaseKey, {
   }
 });
 
-// Set auth token from Firebase
+// Set auth headers from Firebase
+let currentUser: any = null;
+
 auth.onAuthStateChanged(async (user) => {
+  currentUser = user;
   if (user) {
     const token = await user.getIdToken();
     supabase.auth.setSession({
@@ -35,8 +38,8 @@ auth.onAuthStateChanged(async (user) => {
         email: user.email || '',
         user_metadata: {}
       }
-    });
-  } else {
-    await supabase.auth.signOut();
+    }).catch(() => {});
   }
 });
+
+export { currentUser };
