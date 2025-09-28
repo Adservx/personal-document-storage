@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 interface PWAStatus {
   isSupported: boolean;
   isInstalled: boolean;
+  isStandalone: boolean;
   swRegistration: ServiceWorkerRegistration | null;
   updateAvailable: boolean;
 }
@@ -11,6 +12,7 @@ const usePWA = (): PWAStatus => {
   const [pwaStatus, setPWAStatus] = useState<PWAStatus>({
     isSupported: false,
     isInstalled: false,
+    isStandalone: false,
     swRegistration: null,
     updateAvailable: false
   });
@@ -19,16 +21,21 @@ const usePWA = (): PWAStatus => {
     // Check if PWA is supported
     const isSupported = 'serviceWorker' in navigator && 'PushManager' in window;
     
-    // Check if app is installed
-    const isInstalled = 
+    // Check if app is running in standalone mode
+    const isStandalone = 
       window.matchMedia('(display-mode: standalone)').matches ||
       (window.navigator as any).standalone === true ||
       document.referrer.includes('android-app://');
 
+    // Check if app was previously installed (even if browsing in regular browser now)
+    const wasInstalled = localStorage.getItem('pwa-was-installed') === 'true';
+    const isInstalled = isStandalone || wasInstalled;
+
     setPWAStatus(prev => ({
       ...prev,
       isSupported,
-      isInstalled
+      isInstalled,
+      isStandalone
     }));
 
     if (isSupported) {
