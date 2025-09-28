@@ -1,4 +1,5 @@
 import React from 'react';
+// PWA-enabled SecureDoc Manager
 import { useAuth } from './contexts/AuthContext';
 import { useTheme } from './contexts/ThemeContext';
 import { LoginPage } from './components/auth/LoginPage';
