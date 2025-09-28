@@ -6,7 +6,7 @@ import { LoginPage } from './components/auth/LoginPage';
 import { MainApp } from './components/MainApp';
 import { LoadingSpinner } from './components/LoadingSpinner';
 import { ErrorBoundary } from './components/ErrorBoundary';
-import PWAInstallPrompt from './components/layout/PWAInstallPrompt';
+import NotificationPrompt from './components/layout/NotificationPrompt';
 import usePWA from './hooks/usePWA';
 import './styles/design-system.css';
 import './styles/document-theme.css';
@@ -62,7 +62,7 @@ function App() {
     <ErrorBoundary>
       <div className="app-container theme-transition">
         {!user ? <LoginPage /> : <MainApp />}
-        {isSupported && <PWAInstallPrompt />}
+        <NotificationPrompt />
         {updateAvailable && (
           <div className="pwa-update-banner">
             <p>A new version is available!</p>
