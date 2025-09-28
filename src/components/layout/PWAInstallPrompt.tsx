@@ -121,95 +121,90 @@ const PWAInstallPrompt: React.FC = () => {
   }, [dismissed, isInstalled]);
 
   const handleInstallClick = async () => {
+    console.log('PWA: Install button clicked');
+    
     if (deferredPrompt) {
       try {
+        console.log('PWA: Using native install prompt');
         await deferredPrompt.prompt();
         const { outcome } = await deferredPrompt.userChoice;
         
         if (outcome === 'accepted') {
           console.log('PWA: User accepted the install prompt');
+          setIsInstalled(true);
+          setShowInstallPrompt(false);
         } else {
           console.log('PWA: User dismissed the install prompt');
-          // No dismissal - installation is required
+          // Keep showing prompt since installation is required
         }
         
         setDeferredPrompt(null);
-        setShowInstallPrompt(false);
       } catch (error) {
         console.error('PWA: Install prompt failed:', error);
       }
     } else {
-      // Comprehensive fallback for all devices without native install prompt
+      // Try to trigger automatic installation or provide seamless experience
+      console.log('PWA: No native prompt available, attempting automatic installation');
+      
       const userAgent = navigator.userAgent.toLowerCase();
-      const isIOS = /iphone|ipad|ipod/.test(userAgent);
-      const isAndroid = /android/.test(userAgent);
-      const isMobile = /mobile/.test(userAgent);
-      const isTablet = /tablet|ipad/.test(userAgent);
-      const isDesktop = !isMobile && !isTablet;
-      const isChrome = /chrome/.test(userAgent);
-      const isFirefox = /firefox/.test(userAgent);
-      const isSafari = /safari/.test(userAgent) && !/chrome/.test(userAgent);
-      const isEdge = /edge|edg/.test(userAgent);
-      const isSamsung = /samsungbrowser/.test(userAgent);
       
-      let instructions = 'To install SecureDoc Manager:\n\n';
-      
-      if (isIOS) {
-        instructions += '📱 iOS (iPhone/iPad):\n';
-        instructions += '1. Tap the Share button (⬆️)\n';
-        instructions += '2. Scroll and tap "Add to Home Screen"\n';
-        instructions += '3. Tap "Add" to install\n';
-      } else if (isAndroid && isChrome) {
-        instructions += '📱 Android Chrome:\n';
-        instructions += '1. Tap the menu (⋮) in browser\n';
-        instructions += '2. Select "Add to Home screen"\n';
-        instructions += '3. Tap "Add" to install\n';
-      } else if (isAndroid && isSamsung) {
-        instructions += '📱 Samsung Internet:\n';
-        instructions += '1. Tap the menu (≡) button\n';
-        instructions += '2. Select "Add page to"\n';
-        instructions += '3. Choose "Home screen"\n';
-      } else if (isAndroid) {
-        instructions += '📱 Android:\n';
-        instructions += '1. Look for install icon in address bar\n';
-        instructions += '2. Or use browser menu > "Install app"\n';
-        instructions += '3. Follow installation prompts\n';
-      } else if (isDesktop && isChrome) {
-        instructions += '💻 Desktop Chrome:\n';
-        instructions += '1. Look for install icon (⬇️) in address bar\n';
-        instructions += '2. Or click menu (⋮) > "Install SecureDoc Manager"\n';
-        instructions += '3. Click "Install" in dialog\n';
-      } else if (isDesktop && isEdge) {
-        instructions += '💻 Microsoft Edge:\n';
-        instructions += '1. Look for install icon (⬇️) in address bar\n';
-        instructions += '2. Or click menu (...) > "Apps" > "Install this site as an app"\n';
-        instructions += '3. Click "Install"\n';
-      } else if (isDesktop && isFirefox) {
-        instructions += '💻 Firefox:\n';
-        instructions += '1. Look for install icon in address bar\n';
-        instructions += '2. Or bookmark this page for quick access\n';
-        instructions += '3. Consider using Chrome/Edge for full PWA support\n';
-      } else if (isDesktop && isSafari) {
-        instructions += '💻 Safari (macOS):\n';
-        instructions += '1. Click "File" menu > "Add to Dock"\n';
-        instructions += '2. Or bookmark for quick access\n';
-        instructions += '3. Consider using Chrome/Edge for full PWA support\n';
-      } else if (isTablet) {
-        instructions += '📱 Tablet:\n';
-        instructions += '1. Look for install option in browser menu\n';
-        instructions += '2. Or use "Add to Home screen" option\n';
-        instructions += '3. Follow device-specific prompts\n';
-      } else {
-        instructions += '🌐 Your Browser:\n';
-        instructions += '1. Look for install icon in address bar\n';
-        instructions += '2. Check browser menu for "Install" option\n';
-        instructions += '3. Add bookmark for quick access\n';
+      // Try to find and click the browser's install button automatically
+      if (window.location.hostname !== 'localhost') {
+        // For production, try various methods to trigger install
+        try {
+          // Method 1: Try to dispatch beforeinstallprompt event
+          const installEvent = new Event('beforeinstallprompt');
+          (installEvent as any).prompt = () => Promise.resolve();
+          window.dispatchEvent(installEvent);
+          
+          // Method 2: Try to find install button in browser UI
+          setTimeout(() => {
+            // Look for common install button selectors
+            const installButtons = [
+              '[data-test-id="install-button"]',
+              '[aria-label*="install"]',
+              '[aria-label*="Install"]',
+              '[title*="install"]',
+              '[title*="Install"]'
+            ];
+            
+            for (const selector of installButtons) {
+              const button = document.querySelector(selector) as HTMLElement;
+              if (button) {
+                console.log('PWA: Found install button, clicking automatically');
+                button.click();
+                return;
+              }
+            }
+          }, 100);
+          
+        } catch (error) {
+          console.log('PWA: Automatic installation methods failed:', error);
+        }
       }
       
-      instructions += '\n✨ Enjoy offline access and app-like experience!';
+      // Provide browser-specific automatic guidance
+      const isIOS = /iphone|ipad|ipod/.test(userAgent);
+      const isAndroid = /android/.test(userAgent);
+      const isChrome = /chrome/.test(userAgent) && !(/edg/.test(userAgent));
       
-      alert(instructions);
-      setShowInstallPrompt(false);
+      if (isIOS) {
+        // iOS: Try to highlight share button
+        document.body.style.filter = 'blur(2px)';
+        setTimeout(() => {
+          document.body.style.filter = 'none';
+          alert('📱 Tap the Share button (⬆️) at the bottom of your screen, then select "Add to Home Screen"');
+        }, 500);
+      } else if (isAndroid && isChrome) {
+        // Android Chrome: Try to highlight menu
+        alert('📱 Look for the install icon in your address bar, or tap the menu (⋮) and select "Add to Home screen"');
+      } else {
+        // Generic: Mark as installed and proceed
+        console.log('PWA: Marking as installed for unsupported browser');
+        setIsInstalled(true);
+        setShowInstallPrompt(false);
+        localStorage.setItem('pwa-manual-install', 'true');
+      }
     }
   };
 
