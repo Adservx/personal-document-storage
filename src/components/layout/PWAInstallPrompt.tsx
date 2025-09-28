@@ -223,32 +223,108 @@ const PWAInstallPrompt: React.FC = () => {
         }, 15000);
         
       } else {
-        // Other browsers - try to find install option in menu
-        const installHint = document.createElement('div');
-        installHint.style.cssText = `
+        // Other browsers - redirect to Chrome for proper PWA installation
+        console.log('PWA: Redirecting to proper browser for installation');
+        
+        const redirectDiv = document.createElement('div');
+        redirectDiv.style.cssText = `
           position: fixed;
-          top: 10px;
-          left: 10px;
-          right: 10px;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
           background: #3b82f6;
           color: white;
-          padding: 1rem;
-          border-radius: 12px;
-          font-size: 1rem;
+          padding: 2rem;
+          border-radius: 16px;
+          font-size: 1.125rem;
           font-weight: 600;
           z-index: 70000;
           text-align: center;
-          box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+          box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+          max-width: 400px;
+          width: 90%;
         `;
-        installHint.innerHTML = '📱 Check your browser menu for "Install" or "Add to Home Screen" option to install the app!';
-        document.body.appendChild(installHint);
+        redirectDiv.innerHTML = `
+          <div style="margin-bottom: 1rem;">🚀 Installing SecureDoc Manager</div>
+          <div style="font-size: 1rem; margin-bottom: 1.5rem;">
+            Redirecting to Chrome for proper PWA installation...
+          </div>
+          <div style="font-size: 0.875rem; opacity: 0.9;">
+            You'll be redirected in 3 seconds
+          </div>
+        `;
+        document.body.appendChild(redirectDiv);
         
-        // Remove hint after 8 seconds
+        // Get current URL
+        const currentUrl = window.location.href;
+        
+        // Redirect to Chrome with installation intent
         setTimeout(() => {
-          if (document.body.contains(installHint)) {
-            document.body.removeChild(installHint);
+          // Try different methods to open in Chrome
+          const chromeUrls = [
+            `googlechrome://${currentUrl}`, // Chrome mobile protocol
+            `intent://${currentUrl.replace(/https?:\/\//, '')}#Intent;scheme=https;package=com.android.chrome;end`, // Android Chrome intent
+            currentUrl // Fallback to current URL
+          ];
+          
+          // Try Chrome mobile first
+          if (isAndroid) {
+            try {
+              window.location.href = chromeUrls[1]; // Android Chrome intent
+            } catch (error) {
+              // Fallback to Chrome protocol
+              try {
+                window.location.href = chromeUrls[0];
+              } catch (error2) {
+                // Final fallback - open in current browser but mark as needing Chrome
+                const needsChromeDiv = document.createElement('div');
+                needsChromeDiv.style.cssText = `
+                  position: fixed;
+                  top: 10px;
+                  left: 10px;
+                  right: 10px;
+                  background: #dc2626;
+                  color: white;
+                  padding: 1rem;
+                  border-radius: 12px;
+                  font-size: 1rem;
+                  font-weight: 600;
+                  z-index: 70000;
+                  text-align: center;
+                  box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+                `;
+                needsChromeDiv.innerHTML = '📱 Please install Chrome browser and open this app in Chrome for proper PWA installation!';
+                document.body.appendChild(needsChromeDiv);
+                
+                // Remove redirect div
+                if (document.body.contains(redirectDiv)) {
+                  document.body.removeChild(redirectDiv);
+                }
+              }
+            }
+          } else {
+            // Desktop - provide Chrome download link
+            window.open('https://www.google.com/chrome/', '_blank');
+            
+            // Update redirect message
+            redirectDiv.innerHTML = `
+              <div style="margin-bottom: 1rem;">🚀 Installing SecureDoc Manager</div>
+              <div style="font-size: 1rem; margin-bottom: 1.5rem;">
+                Please install Chrome browser and return to this page for proper PWA installation.
+              </div>
+              <div style="font-size: 0.875rem; opacity: 0.9;">
+                Chrome download page opened in new tab
+              </div>
+            `;
           }
-        }, 8000);
+        }, 3000);
+        
+        // Remove redirect div after 10 seconds
+        setTimeout(() => {
+          if (document.body.contains(redirectDiv)) {
+            document.body.removeChild(redirectDiv);
+          }
+        }, 10000);
       }
       
       // Don't mark as installed - keep prompting until actually installed
