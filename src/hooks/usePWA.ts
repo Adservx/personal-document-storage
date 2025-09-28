@@ -1,0 +1,104 @@
+import { useEffect, useState } from 'react';
+
+interface PWAStatus {
+  isSupported: boolean;
+  isInstalled: boolean;
+  swRegistration: ServiceWorkerRegistration | null;
+  updateAvailable: boolean;
+}
+
+const usePWA = (): PWAStatus => {
+  const [pwaStatus, setPWAStatus] = useState<PWAStatus>({
+    isSupported: false,
+    isInstalled: false,
+    swRegistration: null,
+    updateAvailable: false
+  });
+
+  useEffect(() => {
+    // Check if PWA is supported
+    const isSupported = 'serviceWorker' in navigator && 'PushManager' in window;
+    
+    // Check if app is installed
+    const isInstalled = 
+      window.matchMedia('(display-mode: standalone)').matches ||
+      (window.navigator as any).standalone === true ||
+      document.referrer.includes('android-app://');
+
+    setPWAStatus(prev => ({
+      ...prev,
+      isSupported,
+      isInstalled
+    }));
+
+    if (isSupported) {
+      registerServiceWorker();
+    }
+  }, []);
+
+  const registerServiceWorker = async () => {
+    try {
+      const registration = await navigator.serviceWorker.register('/sw.js', {
+        scope: '/',
+        updateViaCache: 'none'
+      });
+
+      console.log('PWA: Service Worker registered successfully:', registration);
+
+      setPWAStatus(prev => ({
+        ...prev,
+        swRegistration: registration
+      }));
+
+      // Check for updates
+      registration.addEventListener('updatefound', () => {
+        const newWorker = registration.installing;
+        if (newWorker) {
+          newWorker.addEventListener('statechange', () => {
+            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+              console.log('PWA: New content is available; please refresh.');
+              setPWAStatus(prev => ({
+                ...prev,
+                updateAvailable: true
+              }));
+              
+              // Optionally auto-update after a delay
+              setTimeout(() => {
+                if (newWorker.state === 'installed') {
+                  newWorker.postMessage({ type: 'SKIP_WAITING' });
+                }
+              }, 5000);
+            }
+          });
+        }
+      });
+
+      // Handle messages from service worker
+      navigator.serviceWorker.addEventListener('message', event => {
+        if (event.data && event.data.type === 'SW_UPDATED') {
+          window.location.reload();
+        }
+      });
+
+      // Update service worker on page load if new one is waiting
+      if (registration.waiting) {
+        setPWAStatus(prev => ({
+          ...prev,
+          updateAvailable: true
+        }));
+      }
+
+      // Periodically check for updates
+      setInterval(() => {
+        registration.update();
+      }, 60000); // Check every minute
+
+    } catch (error) {
+      console.error('PWA: Service Worker registration failed:', error);
+    }
+  };
+
+  return pwaStatus;
+};
+
+export default usePWA;

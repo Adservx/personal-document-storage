@@ -5,12 +5,15 @@ import { LoginPage } from './components/auth/LoginPage';
 import { MainApp } from './components/MainApp';
 import { LoadingSpinner } from './components/LoadingSpinner';
 import { ErrorBoundary } from './components/ErrorBoundary';
+import PWAInstallPrompt from './components/layout/PWAInstallPrompt';
+import usePWA from './hooks/usePWA';
 import './styles/design-system.css';
 import './styles/document-theme.css';
 
 function App() {
   const { user, loading: authLoading } = useAuth();
   const { isDark } = useTheme();
+  const { isSupported, updateAvailable } = usePWA();
 
   React.useEffect(() => {
     // Apply theme class to body for consistent theming
@@ -58,6 +61,13 @@ function App() {
     <ErrorBoundary>
       <div className="app-container theme-transition">
         {!user ? <LoginPage /> : <MainApp />}
+        {isSupported && <PWAInstallPrompt />}
+        {updateAvailable && (
+          <div className="pwa-update-banner">
+            <p>A new version is available!</p>
+            <button onClick={() => window.location.reload()}>Update</button>
+          </div>
+        )}
       </div>
     </ErrorBoundary>
   );
