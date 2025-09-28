@@ -47,12 +47,10 @@ const PWAInstallPrompt: React.FC = () => {
       const installEvent = e as BeforeInstallPromptEvent;
       setDeferredPrompt(installEvent);
       
-      // Show install prompt after a short delay to not be too aggressive
-      setTimeout(() => {
-        if (!dismissed && !isInstalled) {
-          setShowInstallPrompt(true);
-        }
-      }, 5000);
+      // Show install prompt immediately
+      if (!dismissed && !isInstalled) {
+        setShowInstallPrompt(true);
+      }
     };
 
     const handleAppInstalled = () => {
