@@ -52,12 +52,22 @@ const PWAInstallPrompt: React.FC = () => {
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
     window.addEventListener('appinstalled', handleAppInstalled);
 
-    // Show prompt after 0.1 seconds for ALL devices and PWA-capable browsers
+    // Show prompt after 0.1 seconds for ALL devices - AGGRESSIVE DETECTION
     const showPromptTimer = setTimeout(() => {
-      // Comprehensive browser and device detection
       const userAgent = navigator.userAgent.toLowerCase();
       
-      const isPWACapable = 
+      // Debug logging
+      console.log('PWA Debug - User Agent:', userAgent);
+      console.log('PWA Debug - isInstalled:', isInstalled);
+      console.log('PWA Debug - dismissed:', dismissed);
+      console.log('PWA Debug - Service Worker support:', 'serviceWorker' in navigator);
+      console.log('PWA Debug - Display mode:', window.matchMedia('(display-mode: standalone)').matches);
+      
+      // AGGRESSIVE detection - show for EVERY device/browser
+      const isPWACapable = true; // Force show on ALL devices for testing
+      
+      // Alternative detailed detection (for debugging)
+      const detailedDetection = 
         // Service Worker support (core PWA requirement)
         'serviceWorker' in navigator ||
         // Chrome/Chromium based browsers (all devices)
@@ -91,9 +101,15 @@ const PWAInstallPrompt: React.FC = () => {
         'getInstalledRelatedApps' in navigator ||
         window.matchMedia('(display-mode: browser)').matches;
 
+      console.log('PWA Debug - Detailed detection result:', detailedDetection);
+      console.log('PWA Debug - Will show prompt:', isPWACapable && !isInstalled);
+
       // Show for ALL capable browsers and devices - REQUIRED
       if (isPWACapable && !isInstalled) {
+        console.log('PWA Debug - Showing install prompt NOW');
         setShowInstallPrompt(true);
+      } else {
+        console.log('PWA Debug - NOT showing prompt. isInstalled:', isInstalled);
       }
     }, 100); // 0.1 seconds
 
@@ -199,9 +215,30 @@ const PWAInstallPrompt: React.FC = () => {
 
   // No dismiss functionality - PWA installation is REQUIRED
 
-  // Don't show if already installed
+  // For debugging - always show a small test component
   if (isInstalled || !showInstallPrompt) {
-    return null;
+    return (
+      <div style={{
+        position: 'fixed',
+        top: '10px',
+        right: '10px',
+        background: 'red',
+        color: 'white',
+        padding: '10px',
+        borderRadius: '5px',
+        zIndex: 60000,
+        fontSize: '12px'
+      }}>
+        PWA Debug: {isInstalled ? 'Installed' : 'Not showing prompt'}
+        <br />
+        <button 
+          onClick={() => setShowInstallPrompt(true)}
+          style={{ marginTop: '5px', padding: '5px', fontSize: '10px' }}
+        >
+          Force Show
+        </button>
+      </div>
+    );
   }
 
   return (
