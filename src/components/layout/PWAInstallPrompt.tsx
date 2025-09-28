@@ -29,6 +29,12 @@ const PWAInstallPrompt: React.FC = () => {
       return;
     }
 
+    // Check if user bypassed installation previously
+    if (localStorage.getItem('pwa-bypass-install')) {
+      setIsInstalled(true);
+      return;
+    }
+
     // PWA Installation is now REQUIRED - no dismissal allowed
 
     const handleBeforeInstallPrompt = (e: Event) => {
@@ -143,68 +149,35 @@ const PWAInstallPrompt: React.FC = () => {
         console.error('PWA: Install prompt failed:', error);
       }
     } else {
-      // Try to trigger automatic installation or provide seamless experience
-      console.log('PWA: No native prompt available, attempting automatic installation');
+      // If no native prompt is available, just mark as installed and proceed
+      console.log('PWA: No native prompt available, proceeding with app access');
+      setIsInstalled(true);
+      setShowInstallPrompt(false);
+      localStorage.setItem('pwa-bypass-install', 'true');
       
-      const userAgent = navigator.userAgent.toLowerCase();
+      // Show a brief success message
+      const successDiv = document.createElement('div');
+      successDiv.style.cssText = `
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: #10b981;
+        color: white;
+        padding: 1rem 2rem;
+        border-radius: 12px;
+        font-size: 1.25rem;
+        font-weight: 600;
+        z-index: 70000;
+        text-align: center;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+      `;
+      successDiv.innerHTML = '✅ App Ready!<br><small>You can now use SecureDoc Manager</small>';
+      document.body.appendChild(successDiv);
       
-      // Try to find and click the browser's install button automatically
-      if (window.location.hostname !== 'localhost') {
-        // For production, try various methods to trigger install
-        try {
-          // Method 1: Try to dispatch beforeinstallprompt event
-          const installEvent = new Event('beforeinstallprompt');
-          (installEvent as any).prompt = () => Promise.resolve();
-          window.dispatchEvent(installEvent);
-          
-          // Method 2: Try to find install button in browser UI
-          setTimeout(() => {
-            // Look for common install button selectors
-            const installButtons = [
-              '[data-test-id="install-button"]',
-              '[aria-label*="install"]',
-              '[aria-label*="Install"]',
-              '[title*="install"]',
-              '[title*="Install"]'
-            ];
-            
-            for (const selector of installButtons) {
-              const button = document.querySelector(selector) as HTMLElement;
-              if (button) {
-                console.log('PWA: Found install button, clicking automatically');
-                button.click();
-                return;
-              }
-            }
-          }, 100);
-          
-        } catch (error) {
-          console.log('PWA: Automatic installation methods failed:', error);
-        }
-      }
-      
-      // Provide browser-specific automatic guidance
-      const isIOS = /iphone|ipad|ipod/.test(userAgent);
-      const isAndroid = /android/.test(userAgent);
-      const isChrome = /chrome/.test(userAgent) && !(/edg/.test(userAgent));
-      
-      if (isIOS) {
-        // iOS: Try to highlight share button
-        document.body.style.filter = 'blur(2px)';
-        setTimeout(() => {
-          document.body.style.filter = 'none';
-          alert('📱 Tap the Share button (⬆️) at the bottom of your screen, then select "Add to Home Screen"');
-        }, 500);
-      } else if (isAndroid && isChrome) {
-        // Android Chrome: Try to highlight menu
-        alert('📱 Look for the install icon in your address bar, or tap the menu (⋮) and select "Add to Home screen"');
-      } else {
-        // Generic: Mark as installed and proceed
-        console.log('PWA: Marking as installed for unsupported browser');
-        setIsInstalled(true);
-        setShowInstallPrompt(false);
-        localStorage.setItem('pwa-manual-install', 'true');
-      }
+      setTimeout(() => {
+        document.body.removeChild(successDiv);
+      }, 2000);
     }
   };
 
@@ -262,7 +235,7 @@ const PWAInstallPrompt: React.FC = () => {
             className="pwa-install-btn pwa-install-primary pwa-install-required"
             onClick={handleInstallClick}
           >
-            🚀 Install Now - Required
+            {deferredPrompt ? '🚀 Install App' : '✅ Continue to App'}
           </button>
         </div>
       </div>
