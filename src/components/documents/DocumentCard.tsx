@@ -7,7 +7,7 @@ interface DocumentCardProps {
   document: Document;
   onDownload: (document: Document) => void;
   onDelete: (document: Document) => void;
-  viewMode?: 'grid' | 'list';
+  viewMode?: 'list'; // Only supports list view
 }
 
 const formatFileSize = (bytes: number): string => {
@@ -39,12 +39,12 @@ export const DocumentCard: React.FC<DocumentCardProps> = ({
   document,
   onDownload,
   onDelete,
-  viewMode = 'grid'
+  viewMode = 'list' // Default to list view
 }) => {
   const isImage = document.file_type?.startsWith('image/');
 
   return (
-    <div className={`document-card card hover-lift animate-fade-in ${viewMode === 'list' ? 'list-mode' : 'grid-mode'}`}>
+    <div className="document-card card hover-lift animate-fade-in list-mode">
       <div className="document-preview">
         {isImage ? (
           <img

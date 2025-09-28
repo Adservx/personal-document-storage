@@ -160,11 +160,17 @@
   border: 2px solid var(--border-default);
   transition: all var(--transition-normal);
   box-shadow: var(--shadow-sm);
+  background: var(--bg-tertiary);
+  display: block;
 }
 
 .user-avatar:hover {
   border-color: var(--primary-500);
   box-shadow: var(--shadow-lg), 0 0 15px var(--primary-500);
+}
+
+.user-avatar[src=""], .user-avatar:not([src]) {
+  display: none;
 }
 
 .user-avatar-placeholder {

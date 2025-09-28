@@ -18,7 +18,7 @@ export const DocumentsList: React.FC<DocumentsListProps> = ({ refreshTrigger }) 
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('');
-  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  // Removed viewMode state - using list view only
 
   const fetchDocuments = useCallback(async () => {
     if (!user?.id || !isReady) {
@@ -187,28 +187,13 @@ export const DocumentsList: React.FC<DocumentsListProps> = ({ refreshTrigger }) 
             </select>
 
 
-            <div className="view-controls">
-              <button
-                onClick={() => setViewMode('grid')}
-                className={`view-btn btn ${viewMode === 'grid' ? 'btn-primary' : 'btn-secondary'}`}
-                title="Grid view"
-              >
-                ⚏
-              </button>
-              <button
-                onClick={() => setViewMode('list')}
-                className={`view-btn btn ${viewMode === 'list' ? 'btn-primary' : 'btn-secondary'}`}
-                title="List view"
-              >
-                ☰
-              </button>
-            </div>
+            {/* View controls removed - using list view only */}
           </div>
         </div>
       </div>
 
       {filteredDocuments.length > 0 ? (
-        <div className={`documents-container ${viewMode === 'list' ? 'list-view' : 'grid-view'}`}>
+        <div className="documents-container list-view">
           {filteredDocuments.map((doc, index) => (
             <div
               key={doc.id}
@@ -216,11 +201,11 @@ export const DocumentsList: React.FC<DocumentsListProps> = ({ refreshTrigger }) 
               style={{ animationDelay: `${index * 50}ms` }}
             >
               <DocumentCard
-              document={doc}
-              onDownload={handleDownload}
-              onDelete={handleDelete}
-                viewMode={viewMode}
-            />
+                document={doc}
+                onDownload={handleDownload}
+                onDelete={handleDelete}
+                viewMode="list"
+              />
             </div>
           ))}
         </div>

@@ -43,15 +43,28 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
       if (firebaseUser) {
+        console.log('Firebase user data:', {
+          uid: firebaseUser.uid,
+          email: firebaseUser.email,
+          displayName: firebaseUser.displayName,
+          photoURL: firebaseUser.photoURL,
+          emailVerified: firebaseUser.emailVerified
+        });
+
         const user: User = {
           id: firebaseUser.uid,
           email: firebaseUser.email!,
           full_name: firebaseUser.displayName || undefined,
+          displayName: firebaseUser.displayName || undefined,
           avatar_url: firebaseUser.photoURL || undefined,
+          photoURL: firebaseUser.photoURL || undefined,
           created_at: new Date().toISOString()
         };
+        
+        console.log('Mapped user data:', user);
         setUser(user);
       } else {
+        console.log('No Firebase user found');
         setUser(null);
       }
       setLoading(false);
