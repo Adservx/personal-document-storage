@@ -5,6 +5,7 @@ import { useProgress } from '../../contexts/ProgressContext';
 import { Document } from '../../types';
 import { DocumentCard } from './DocumentCard';
 import { DOCUMENT_CATEGORIES, getDocumentCategory } from '../../utils/constants';
+import { decryptDocument, generateUserEncryptionKey } from '../../utils/encryption';
 import './DocumentsList.css';
 
 interface DocumentsListProps {
@@ -36,7 +37,12 @@ export const DocumentsList: React.FC<DocumentsListProps> = ({ refreshTrigger }) 
       console.log('📋 Fetching documents for user:', userId);
       const { data, error } = await supabase
         .from('documents')
-        .select('*')
+        .select(`
+          *,
+          is_encrypted,
+          encryption_metadata,
+          encryption_version
+        `)
         .eq('user_id', userId)
         .order('created_at', { ascending: false});
       
@@ -46,6 +52,18 @@ export const DocumentsList: React.FC<DocumentsListProps> = ({ refreshTrigger }) 
       }
       
       console.log('✅ Fetched', data?.length || 0, 'documents');
+      
+      // Debug: Check encryption status of documents
+      if (data && data.length > 0) {
+        const encryptedCount = data.filter(doc => doc.is_encrypted).length;
+        console.log(`🔒 Encrypted documents: ${encryptedCount}/${data.length}`);
+        data.forEach(doc => {
+          if (doc.is_encrypted) {
+            console.log(`🔐 Encrypted: ${doc.name} (metadata: ${!!doc.encryption_metadata})`);
+          }
+        });
+      }
+      
       setDocuments(data || []);
     } catch (error) {
       console.error('Error in fetchDocuments:', error);
@@ -64,21 +82,55 @@ export const DocumentsList: React.FC<DocumentsListProps> = ({ refreshTrigger }) 
   }, [fetchDocuments, refreshTrigger]);
 
   const handleDownload = async (doc: Document) => {
+    if (!user?.id) {
+      console.error('User not authenticated for download');
+      return;
+    }
+
+    const progressId = addProgress('download', doc.name);
+    
     try {
+      updateProgress(progressId, 10, 'processing');
+      
       const { data, error } = await supabase.storage
         .from('documents')
         .download(doc.file_path);
       
       if (error) throw error;
       
-      const url = URL.createObjectURL(data);
+      updateProgress(progressId, 50, 'processing');
+      
+      let finalBlob = data;
+      let fileName = doc.name;
+      
+      // Check if document is encrypted
+      if (doc.is_encrypted && doc.encryption_metadata) {
+        updateProgress(progressId, 70, 'processing');
+        
+        // Generate user encryption key
+        const encryptionKey = await generateUserEncryptionKey(user.id);
+        
+        // Decrypt the file
+        const decryptedBlob = await decryptDocument(data, doc.encryption_metadata, encryptionKey);
+        finalBlob = decryptedBlob;
+        
+        // Use original filename from metadata
+        fileName = doc.encryption_metadata.originalName || doc.name;
+      }
+      
+      updateProgress(progressId, 90, 'processing');
+      
+      const url = URL.createObjectURL(finalBlob);
       const link = document.createElement('a');
       link.href = url;
-      link.download = doc.name;
+      link.download = fileName;
       link.click();
       URL.revokeObjectURL(url);
+      
+      updateProgress(progressId, 100, 'success');
     } catch (error) {
       console.error('Error downloading file:', error);
+      updateProgress(progressId, 0, 'error', 'Download failed');
     }
   };
 

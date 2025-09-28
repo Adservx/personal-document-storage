@@ -6,6 +6,8 @@ import { Header } from './layout/Header';
 import { UploadSection } from './documents/UploadSection';
 import { MyDocumentsPage } from './MyDocumentsPage';
 import { ProgressBar } from './ProgressBar';
+import { encryptDocument, generateUserEncryptionKey } from '../utils/encryption';
+import type { EncryptionMetadata } from '../types';
 import './MainApp.css';
 
 export const MainApp: React.FC = () => {
@@ -35,20 +37,29 @@ export const MainApp: React.FC = () => {
       setLoading(true);
       updateProgress(progressId, 10, 'processing');
       
-      const fileExt = file.name.split('.').pop();
+      // Generate user-specific encryption key
+      const encryptionKey = await generateUserEncryptionKey(user.id);
+      
+      // Encrypt the file before uploading
+      const { blob: encryptedBlob, metadata } = await encryptDocument(file, encryptionKey);
+      
+      updateProgress(progressId, 30, 'processing');
+      
+      const fileExt = 'encrypted'; // Use .encrypted extension for encrypted files
       const fileName = `${user.id}/${Date.now()}.${fileExt}`;
       
-      updateProgress(progressId, 30);
       const { error: uploadError } = await supabase.storage
         .from('documents')
-        .upload(fileName, file, {
+        .upload(fileName, encryptedBlob, {
           cacheControl: '3600',
-          upsert: false
+          upsert: false,
+          contentType: 'application/octet-stream'
         });
 
       if (uploadError) throw new Error(`Upload failed: ${uploadError.message}`);
 
-      updateProgress(progressId, 70);
+      updateProgress(progressId, 70, 'processing');
+      
       const { data: { publicUrl } } = supabase.storage
         .from('documents')
         .getPublicUrl(fileName);
@@ -58,12 +69,15 @@ export const MainApp: React.FC = () => {
       
       const documentData = {
         user_id: userId,
-        name: file.name,
+        name: file.name, // Store original filename
         category,
-        file_type: file.type || 'application/octet-stream',
-        file_size: file.size,
-        file_path: fileName,
-        file_url: publicUrl
+        file_type: file.type || 'application/octet-stream', // Store original file type
+        file_size: file.size, // Store original file size
+        file_path: fileName, // Encrypted file path
+        file_url: publicUrl,
+        is_encrypted: true,
+        encryption_metadata: metadata as EncryptionMetadata,
+        encryption_version: 1
       };
       
       updateProgress(progressId, 90);
@@ -84,6 +98,7 @@ export const MainApp: React.FC = () => {
       }, 100);
 
     } catch (error: any) {
+      console.error('Upload error:', error);
       updateProgress(progressId, 0, 'error', error.message || 'Upload failed');
     } finally {
       setLoading(false);

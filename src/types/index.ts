@@ -13,8 +13,21 @@ export interface Document {
   tags?: string[];
   version?: number;
   is_encrypted?: boolean;
+  encryption_metadata?: EncryptionMetadata;
+  encryption_version?: number;
   shared_with?: string[];
   access_level?: 'private' | 'shared' | 'public';
+}
+
+export interface EncryptionMetadata {
+  iv: number[];
+  salt: number[];
+  algorithm: string;
+  originalName: string;
+  originalType: string;
+  originalSize: number;
+  encrypted: boolean;
+  encryptedAt: string;
 }
 
 export type DocumentCategory = 

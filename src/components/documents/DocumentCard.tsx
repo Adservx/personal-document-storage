@@ -1,6 +1,8 @@
 import React from 'react';
 import { Document } from '../../types';
 import { getDocumentCategory } from '../../utils/constants';
+import { EncryptionBadge } from './EncryptionBadge';
+import { EncryptedImagePreview } from './EncryptedImagePreview';
 import './DocumentCard.css';
 
 interface DocumentCardProps {
@@ -47,12 +49,20 @@ export const DocumentCard: React.FC<DocumentCardProps> = ({
     <div className="document-card card hover-lift animate-fade-in list-mode">
       <div className="document-preview">
         {isImage ? (
-          <img
-            src={document.file_url}
-            alt={document.name}
-            className="preview-image hover-scale"
-            loading="lazy"
-          />
+          document.is_encrypted ? (
+            <EncryptedImagePreview
+              document={document}
+              className="preview-image hover-scale"
+              alt={document.name}
+            />
+          ) : (
+            <img
+              src={document.file_url}
+              alt={document.name}
+              className="preview-image hover-scale"
+              loading="lazy"
+            />
+          )
         ) : (
           <div className="file-icon animate-float">
             <span className="icon-symbol">{getFileIcon(document.file_type || '')}</span>
@@ -73,8 +83,11 @@ export const DocumentCard: React.FC<DocumentCardProps> = ({
       <div className="document-content">
         <div className="document-header">
           <div className="category-badge animate-pulse">{getDocumentCategory(document.category)?.label || document.category}</div>
-          <div className="document-status">
-            <span className="status-dot"></span>
+          <div className="document-badges">
+            <EncryptionBadge isEncrypted={document.is_encrypted} />
+            <div className="document-status">
+              <span className="status-dot"></span>
+            </div>
           </div>
         </div>
         

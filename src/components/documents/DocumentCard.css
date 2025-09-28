@@ -89,6 +89,58 @@
   gap: var(--space-2);
 }
 
+.document-badges {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+/* Encrypted Image Preview Styles */
+.encrypted-image-loading,
+.encrypted-image-error {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-tertiary);
+  border-radius: var(--radius-md);
+  gap: var(--space-1);
+  min-height: 60px;
+}
+
+.encrypted-image-loading .loading-spinner {
+  font-size: 1.2rem;
+  animation: spin 1s linear infinite;
+}
+
+.encrypted-image-loading .loading-text,
+.encrypted-image-error .error-text {
+  font-size: 0.7rem;
+  color: var(--text-secondary);
+  text-align: center;
+  font-weight: 500;
+}
+
+.encrypted-image-error .error-icon {
+  font-size: 1.5rem;
+  opacity: 0.7;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* Ensure encrypted images fit properly in preview */
+.document-preview .preview-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: var(--radius-md);
+}
+
 .document-status {
   display: flex;
   align-items: center;

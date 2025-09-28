@@ -2,7 +2,7 @@ import React, { createContext, useContext, useState, ReactNode } from 'react';
 
 export interface ProgressItem {
   id: string;
-  type: 'upload' | 'delete';
+  type: 'upload' | 'delete' | 'download';
   fileName: string;
   progress: number;
   status: 'pending' | 'processing' | 'success' | 'error';
@@ -11,7 +11,7 @@ export interface ProgressItem {
 
 interface ProgressContextType {
   items: ProgressItem[];
-  addProgress: (type: 'upload' | 'delete', fileName: string) => string;
+  addProgress: (type: 'upload' | 'delete' | 'download', fileName: string) => string;
   updateProgress: (id: string, progress: number, status?: ProgressItem['status'], error?: string) => void;
   removeProgress: (id: string) => void;
   clearCompleted: () => void;
@@ -34,7 +34,7 @@ interface ProgressProviderProps {
 export const ProgressProvider: React.FC<ProgressProviderProps> = ({ children }) => {
   const [items, setItems] = useState<ProgressItem[]>([]);
 
-  const addProgress = (type: 'upload' | 'delete', fileName: string): string => {
+  const addProgress = (type: 'upload' | 'delete' | 'download', fileName: string): string => {
     const id = Math.random().toString(36).substr(2, 9);
     const item: ProgressItem = {
       id,
