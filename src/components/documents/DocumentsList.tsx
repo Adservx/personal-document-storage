@@ -18,8 +18,6 @@ export const DocumentsList: React.FC<DocumentsListProps> = ({ refreshTrigger }) 
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('');
-  const [sortBy, setSortBy] = useState<'date' | 'name' | 'size'>('date');
-  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
 
   const fetchDocuments = useCallback(async () => {
@@ -112,45 +110,15 @@ export const DocumentsList: React.FC<DocumentsListProps> = ({ refreshTrigger }) 
     }
   };
 
-  // Filtered and sorted documents
-  const filteredAndSortedDocuments = useMemo(() => {
-    let filtered = documents.filter(doc => {
+  // Filtered documents (sorted by date descending by default)
+  const filteredDocuments = useMemo(() => {
+    return documents.filter(doc => {
       const matchesSearch = doc.name.toLowerCase().includes(searchQuery.toLowerCase());
       const matchesCategory = !selectedCategory || doc.category === selectedCategory;
       return matchesSearch && matchesCategory;
     });
+  }, [documents, searchQuery, selectedCategory]);
 
-    // Sort documents
-    filtered.sort((a, b) => {
-      let comparison = 0;
-      
-      switch (sortBy) {
-        case 'name':
-          comparison = a.name.localeCompare(b.name);
-          break;
-        case 'size':
-          comparison = a.file_size - b.file_size;
-          break;
-        case 'date':
-        default:
-          comparison = new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
-          break;
-      }
-      
-      return sortOrder === 'asc' ? comparison : -comparison;
-    });
-
-    return filtered;
-  }, [documents, searchQuery, selectedCategory, sortBy, sortOrder]);
-
-  const handleSortChange = (newSortBy: 'date' | 'name' | 'size') => {
-    if (sortBy === newSortBy) {
-      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
-    } else {
-      setSortBy(newSortBy);
-      setSortOrder('desc');
-    }
-  };
 
   if (loading) {
     return (
@@ -177,7 +145,7 @@ export const DocumentsList: React.FC<DocumentsListProps> = ({ refreshTrigger }) 
         <div className="header-top">
           <h2 className="documents-title">My Documents</h2>
           <div className="documents-stats">
-            <span className="total-count">{filteredAndSortedDocuments.length} of {documents.length}</span>
+            <span className="total-count">{filteredDocuments.length} of {documents.length}</span>
           </div>
         </div>
 
@@ -218,46 +186,6 @@ export const DocumentsList: React.FC<DocumentsListProps> = ({ refreshTrigger }) 
               ))}
             </select>
 
-            <div className="sort-controls">
-              <button
-                onClick={() => handleSortChange('date')}
-                className={`sort-btn btn ${sortBy === 'date' ? 'btn-primary' : 'btn-secondary'}`}
-                title={`Sort by date ${sortBy === 'date' ? (sortOrder === 'desc' ? '(newest first)' : '(oldest first)') : ''}`}
-              >
-                📅 Date
-                {sortBy === 'date' && (
-                  <span className="sort-indicator">
-                    {sortOrder === 'desc' ? '↓' : '↑'}
-                  </span>
-                )}
-              </button>
-
-              <button
-                onClick={() => handleSortChange('name')}
-                className={`sort-btn btn ${sortBy === 'name' ? 'btn-primary' : 'btn-secondary'}`}
-                title={`Sort by name ${sortBy === 'name' ? (sortOrder === 'desc' ? '(Z-A)' : '(A-Z)') : ''}`}
-              >
-                🔤 Name
-                {sortBy === 'name' && (
-                  <span className="sort-indicator">
-                    {sortOrder === 'desc' ? '↓' : '↑'}
-                  </span>
-                )}
-              </button>
-
-              <button
-                onClick={() => handleSortChange('size')}
-                className={`sort-btn btn ${sortBy === 'size' ? 'btn-primary' : 'btn-secondary'}`}
-                title={`Sort by size ${sortBy === 'size' ? (sortOrder === 'desc' ? '(largest first)' : '(smallest first)') : ''}`}
-              >
-                📊 Size
-                {sortBy === 'size' && (
-                  <span className="sort-indicator">
-                    {sortOrder === 'desc' ? '↓' : '↑'}
-                  </span>
-                )}
-              </button>
-            </div>
 
             <div className="view-controls">
               <button
@@ -279,9 +207,9 @@ export const DocumentsList: React.FC<DocumentsListProps> = ({ refreshTrigger }) 
         </div>
       </div>
 
-      {filteredAndSortedDocuments.length > 0 ? (
+      {filteredDocuments.length > 0 ? (
         <div className={`documents-container ${viewMode === 'list' ? 'list-view' : 'grid-view'}`}>
-          {filteredAndSortedDocuments.map((doc, index) => (
+          {filteredDocuments.map((doc, index) => (
             <div
               key={doc.id}
               className="document-item animate-fade-in"
