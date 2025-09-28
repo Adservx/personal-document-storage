@@ -149,35 +149,110 @@ const PWAInstallPrompt: React.FC = () => {
         console.error('PWA: Install prompt failed:', error);
       }
     } else {
-      // If no native prompt is available, just mark as installed and proceed
-      console.log('PWA: No native prompt available, proceeding with app access');
-      setIsInstalled(true);
-      setShowInstallPrompt(false);
-      localStorage.setItem('pwa-bypass-install', 'true');
+      // Force installation for browsers without native prompt
+      console.log('PWA: No native prompt available, attempting forced installation');
       
-      // Show a brief success message
-      const successDiv = document.createElement('div');
-      successDiv.style.cssText = `
-        position: fixed;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        background: #10b981;
-        color: white;
-        padding: 1rem 2rem;
-        border-radius: 12px;
-        font-size: 1.25rem;
-        font-weight: 600;
-        z-index: 70000;
-        text-align: center;
-        box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-      `;
-      successDiv.innerHTML = '✅ App Ready!<br><small>You can now use SecureDoc Manager</small>';
-      document.body.appendChild(successDiv);
+      const userAgent = navigator.userAgent.toLowerCase();
+      const isAndroid = /android/.test(userAgent);
+      const isIOS = /iphone|ipad|ipod/.test(userAgent);
+      const isChrome = /chrome/.test(userAgent) && !(/edg/.test(userAgent));
+      const isSafari = /safari/.test(userAgent) && !(/chrome/.test(userAgent));
+      const isFirefox = /firefox/.test(userAgent);
       
-      setTimeout(() => {
-        document.body.removeChild(successDiv);
-      }, 2000);
+      // Try to trigger actual installation based on browser
+      if (isAndroid && isChrome) {
+        // Android Chrome - Look for install button in address bar
+        const installHint = document.createElement('div');
+        installHint.style.cssText = `
+          position: fixed;
+          top: 10px;
+          left: 10px;
+          right: 10px;
+          background: #3b82f6;
+          color: white;
+          padding: 1rem;
+          border-radius: 12px;
+          font-size: 1rem;
+          font-weight: 600;
+          z-index: 70000;
+          text-align: center;
+          box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+          animation: fadeIn 0.3s ease;
+        `;
+        installHint.innerHTML = '📱 Look for the install icon (⬇️) in your address bar above and tap it to install!';
+        document.body.appendChild(installHint);
+        
+        // Remove hint after 10 seconds
+        setTimeout(() => {
+          if (document.body.contains(installHint)) {
+            document.body.removeChild(installHint);
+          }
+        }, 10000);
+        
+      } else if (isIOS && isSafari) {
+        // iOS Safari - Share button method
+        const installHint = document.createElement('div');
+        installHint.style.cssText = `
+          position: fixed;
+          bottom: 80px;
+          left: 10px;
+          right: 10px;
+          background: #3b82f6;
+          color: white;
+          padding: 1rem;
+          border-radius: 12px;
+          font-size: 1rem;
+          font-weight: 600;
+          z-index: 70000;
+          text-align: center;
+          box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+          animation: bounce 1s infinite;
+        `;
+        installHint.innerHTML = '📱 Tap the Share button (⬆️) at the bottom, then "Add to Home Screen" to install!';
+        document.body.appendChild(installHint);
+        
+        // Highlight the share button area
+        document.body.style.paddingBottom = '100px';
+        
+        // Remove hint after 15 seconds
+        setTimeout(() => {
+          if (document.body.contains(installHint)) {
+            document.body.removeChild(installHint);
+            document.body.style.paddingBottom = '';
+          }
+        }, 15000);
+        
+      } else {
+        // Other browsers - try to find install option in menu
+        const installHint = document.createElement('div');
+        installHint.style.cssText = `
+          position: fixed;
+          top: 10px;
+          left: 10px;
+          right: 10px;
+          background: #3b82f6;
+          color: white;
+          padding: 1rem;
+          border-radius: 12px;
+          font-size: 1rem;
+          font-weight: 600;
+          z-index: 70000;
+          text-align: center;
+          box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+        `;
+        installHint.innerHTML = '📱 Check your browser menu for "Install" or "Add to Home Screen" option to install the app!';
+        document.body.appendChild(installHint);
+        
+        // Remove hint after 8 seconds
+        setTimeout(() => {
+          if (document.body.contains(installHint)) {
+            document.body.removeChild(installHint);
+          }
+        }, 8000);
+      }
+      
+      // Don't mark as installed - keep prompting until actually installed
+      console.log('PWA: Waiting for actual installation...');
     }
   };
 
@@ -235,7 +310,7 @@ const PWAInstallPrompt: React.FC = () => {
             className="pwa-install-btn pwa-install-primary pwa-install-required"
             onClick={handleInstallClick}
           >
-            {deferredPrompt ? '🚀 Install App' : '✅ Continue to App'}
+            🚀 Install App Now
           </button>
         </div>
       </div>
