@@ -47,7 +47,7 @@ const PWAInstallPrompt: React.FC = () => {
       const installEvent = e as BeforeInstallPromptEvent;
       setDeferredPrompt(installEvent);
       
-      // Show install prompt immediately
+      // Show install prompt immediately when event fires
       if (!dismissed && !isInstalled) {
         setShowInstallPrompt(true);
       }
@@ -63,9 +63,28 @@ const PWAInstallPrompt: React.FC = () => {
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
     window.addEventListener('appinstalled', handleAppInstalled);
 
+    // Show prompt after 0.1 seconds for all PWA-capable browsers
+    const showPromptTimer = setTimeout(() => {
+      // Check if browser supports PWA installation
+      const isPWACapable = 
+        'serviceWorker' in navigator &&
+        'BeforeInstallPromptEvent' in window ||
+        // iOS Safari
+        /iPhone|iPad|iPod/.test(navigator.userAgent) ||
+        // Android Chrome
+        /Android.*Chrome/.test(navigator.userAgent) ||
+        // Desktop Chrome/Edge
+        /Chrome|Edge/.test(navigator.userAgent);
+
+      if (isPWACapable && !dismissed && !isInstalled) {
+        setShowInstallPrompt(true);
+      }
+    }, 100); // 0.1 seconds
+
     return () => {
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
       window.removeEventListener('appinstalled', handleAppInstalled);
+      clearTimeout(showPromptTimer);
     };
   }, [dismissed, isInstalled]);
 
@@ -87,6 +106,21 @@ const PWAInstallPrompt: React.FC = () => {
       } catch (error) {
         console.error('PWA: Install prompt failed:', error);
       }
+    } else {
+      // Fallback for browsers without native install prompt
+      // Show manual installation instructions
+      const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent);
+      const isAndroid = /Android/.test(navigator.userAgent);
+      
+      if (isIOS) {
+        alert('To install this app on iOS:\n1. Tap the Share button\n2. Select "Add to Home Screen"\n3. Tap "Add"');
+      } else if (isAndroid) {
+        alert('To install this app:\n1. Tap the menu (⋮) in your browser\n2. Select "Add to Home screen" or "Install app"');
+      } else {
+        alert('To install this app:\n1. Click the install icon in your browser address bar\n2. Or use browser menu > "Install SecureDoc Manager"');
+      }
+      
+      setShowInstallPrompt(false);
     }
   };
 
