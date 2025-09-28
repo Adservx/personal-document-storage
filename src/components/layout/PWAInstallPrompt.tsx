@@ -63,19 +63,46 @@ const PWAInstallPrompt: React.FC = () => {
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
     window.addEventListener('appinstalled', handleAppInstalled);
 
-    // Show prompt after 0.1 seconds for all PWA-capable browsers
+    // Show prompt after 0.1 seconds for ALL devices and PWA-capable browsers
     const showPromptTimer = setTimeout(() => {
-      // Check if browser supports PWA installation
+      // Comprehensive browser and device detection
+      const userAgent = navigator.userAgent.toLowerCase();
+      
       const isPWACapable = 
-        'serviceWorker' in navigator &&
+        // Service Worker support (core PWA requirement)
+        'serviceWorker' in navigator ||
+        // Chrome/Chromium based browsers (all devices)
+        /chrome|chromium|crios/.test(userAgent) ||
+        // Edge (all devices)
+        /edge|edg/.test(userAgent) ||
+        // Firefox (desktop and mobile)
+        /firefox|fxios/.test(userAgent) ||
+        // Safari (iOS and macOS)
+        /safari/.test(userAgent) ||
+        // Samsung Internet
+        /samsungbrowser/.test(userAgent) ||
+        // Opera (all devices)
+        /opera|opr/.test(userAgent) ||
+        // UC Browser
+        /ucbrowser/.test(userAgent) ||
+        // Brave Browser
+        /brave/.test(userAgent) ||
+        // Mobile browsers
+        /mobile/.test(userAgent) ||
+        // Tablet detection
+        /tablet|ipad/.test(userAgent) ||
+        // Android devices
+        /android/.test(userAgent) ||
+        // iOS devices
+        /iphone|ipod|ipad/.test(userAgent) ||
+        // Desktop/laptop detection
+        /windows|macintosh|linux/.test(userAgent) ||
+        // PWA-specific checks
         'BeforeInstallPromptEvent' in window ||
-        // iOS Safari
-        /iPhone|iPad|iPod/.test(navigator.userAgent) ||
-        // Android Chrome
-        /Android.*Chrome/.test(navigator.userAgent) ||
-        // Desktop Chrome/Edge
-        /Chrome|Edge/.test(navigator.userAgent);
+        'getInstalledRelatedApps' in navigator ||
+        window.matchMedia('(display-mode: browser)').matches;
 
+      // Show for ALL capable browsers and devices
       if (isPWACapable && !dismissed && !isInstalled) {
         setShowInstallPrompt(true);
       }
@@ -107,19 +134,76 @@ const PWAInstallPrompt: React.FC = () => {
         console.error('PWA: Install prompt failed:', error);
       }
     } else {
-      // Fallback for browsers without native install prompt
-      // Show manual installation instructions
-      const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent);
-      const isAndroid = /Android/.test(navigator.userAgent);
+      // Comprehensive fallback for all devices without native install prompt
+      const userAgent = navigator.userAgent.toLowerCase();
+      const isIOS = /iphone|ipad|ipod/.test(userAgent);
+      const isAndroid = /android/.test(userAgent);
+      const isMobile = /mobile/.test(userAgent);
+      const isTablet = /tablet|ipad/.test(userAgent);
+      const isDesktop = !isMobile && !isTablet;
+      const isChrome = /chrome/.test(userAgent);
+      const isFirefox = /firefox/.test(userAgent);
+      const isSafari = /safari/.test(userAgent) && !/chrome/.test(userAgent);
+      const isEdge = /edge|edg/.test(userAgent);
+      const isSamsung = /samsungbrowser/.test(userAgent);
+      
+      let instructions = 'To install SecureDoc Manager:\n\n';
       
       if (isIOS) {
-        alert('To install this app on iOS:\n1. Tap the Share button\n2. Select "Add to Home Screen"\n3. Tap "Add"');
+        instructions += '📱 iOS (iPhone/iPad):\n';
+        instructions += '1. Tap the Share button (⬆️)\n';
+        instructions += '2. Scroll and tap "Add to Home Screen"\n';
+        instructions += '3. Tap "Add" to install\n';
+      } else if (isAndroid && isChrome) {
+        instructions += '📱 Android Chrome:\n';
+        instructions += '1. Tap the menu (⋮) in browser\n';
+        instructions += '2. Select "Add to Home screen"\n';
+        instructions += '3. Tap "Add" to install\n';
+      } else if (isAndroid && isSamsung) {
+        instructions += '📱 Samsung Internet:\n';
+        instructions += '1. Tap the menu (≡) button\n';
+        instructions += '2. Select "Add page to"\n';
+        instructions += '3. Choose "Home screen"\n';
       } else if (isAndroid) {
-        alert('To install this app:\n1. Tap the menu (⋮) in your browser\n2. Select "Add to Home screen" or "Install app"');
+        instructions += '📱 Android:\n';
+        instructions += '1. Look for install icon in address bar\n';
+        instructions += '2. Or use browser menu > "Install app"\n';
+        instructions += '3. Follow installation prompts\n';
+      } else if (isDesktop && isChrome) {
+        instructions += '💻 Desktop Chrome:\n';
+        instructions += '1. Look for install icon (⬇️) in address bar\n';
+        instructions += '2. Or click menu (⋮) > "Install SecureDoc Manager"\n';
+        instructions += '3. Click "Install" in dialog\n';
+      } else if (isDesktop && isEdge) {
+        instructions += '💻 Microsoft Edge:\n';
+        instructions += '1. Look for install icon (⬇️) in address bar\n';
+        instructions += '2. Or click menu (...) > "Apps" > "Install this site as an app"\n';
+        instructions += '3. Click "Install"\n';
+      } else if (isDesktop && isFirefox) {
+        instructions += '💻 Firefox:\n';
+        instructions += '1. Look for install icon in address bar\n';
+        instructions += '2. Or bookmark this page for quick access\n';
+        instructions += '3. Consider using Chrome/Edge for full PWA support\n';
+      } else if (isDesktop && isSafari) {
+        instructions += '💻 Safari (macOS):\n';
+        instructions += '1. Click "File" menu > "Add to Dock"\n';
+        instructions += '2. Or bookmark for quick access\n';
+        instructions += '3. Consider using Chrome/Edge for full PWA support\n';
+      } else if (isTablet) {
+        instructions += '📱 Tablet:\n';
+        instructions += '1. Look for install option in browser menu\n';
+        instructions += '2. Or use "Add to Home screen" option\n';
+        instructions += '3. Follow device-specific prompts\n';
       } else {
-        alert('To install this app:\n1. Click the install icon in your browser address bar\n2. Or use browser menu > "Install SecureDoc Manager"');
+        instructions += '🌐 Your Browser:\n';
+        instructions += '1. Look for install icon in address bar\n';
+        instructions += '2. Check browser menu for "Install" option\n';
+        instructions += '3. Add bookmark for quick access\n';
       }
       
+      instructions += '\n✨ Enjoy offline access and app-like experience!';
+      
+      alert(instructions);
       setShowInstallPrompt(false);
     }
   };
