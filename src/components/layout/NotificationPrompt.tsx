@@ -121,12 +121,34 @@ const NotificationPrompt: React.FC = () => {
   }, [dismissed]);
 
   const handleInstallClick = async () => {
-    console.log('PWA: Install button clicked');
+    const userAgent = navigator.userAgent;
+    let detectedBrowser = 'unknown';
+    
+    // Check for Brave first (it includes "Chrome" in user agent)
+    if ((navigator as any).brave && (navigator as any).brave.isBrave) {
+      detectedBrowser = 'Brave';
+    } else if (userAgent.includes('Brave')) {
+      detectedBrowser = 'Brave';
+    } else if (userAgent.includes('OPR') || userAgent.includes('Opera')) {
+      detectedBrowser = 'Opera';
+    } else if (userAgent.includes('Edg')) {
+      detectedBrowser = 'Edge';
+    } else if (userAgent.includes('Chrome')) {
+      detectedBrowser = 'Chrome';
+    } else if (userAgent.includes('Chromium')) {
+      detectedBrowser = 'Chromium';
+    } else if (userAgent.includes('Firefox')) {
+      detectedBrowser = 'Firefox';
+    } else if (userAgent.includes('Safari')) {
+      detectedBrowser = 'Safari';
+    }
+    
+    console.log(`PWA: Install button clicked - Detected browser: ${detectedBrowser}`);
     
     if (deferredPrompt) {
-      // Use the proper PWA install prompt
+      // Use the proper PWA install prompt (works for all Chromium browsers: Chrome, Edge, Brave, Opera, etc.)
       try {
-        console.log('PWA: Using deferred prompt');
+        console.log(`PWA: Using native browser install dialog for ${detectedBrowser}`);
         await deferredPrompt.prompt();
         const { outcome } = await deferredPrompt.userChoice;
         
@@ -145,101 +167,107 @@ const NotificationPrompt: React.FC = () => {
         setShowNotification(false);
       }
     } else {
-      // No deferred prompt available - create install event and show browser-specific guidance
-      console.log('PWA: No deferred prompt - using fallback method');
+      // No deferred prompt available - try to force trigger browser install mechanisms
+      console.log(`PWA: No deferred prompt available for ${detectedBrowser} - attempting to trigger install`);
       
       try {
-        // Mark that user wants to install (for analytics/tracking)
+        // For Chromium browsers (including Brave), try to force the install prompt
+        if (['Brave', 'Chrome', 'Edge', 'Opera', 'Chromium'].includes(detectedBrowser)) {
+          console.log(`PWA: Attempting to force install prompt for Chromium browser: ${detectedBrowser}`);
+          
+          // Method 1: Try to manually trigger beforeinstallprompt
+          const installPromptEvent = new Event('beforeinstallprompt', { cancelable: true });
+          
+          // Create a more realistic deferred prompt object
+          const mockDeferredPrompt = {
+            prompt: async () => {
+              console.log(`PWA: Mock install prompt triggered for ${detectedBrowser}`);
+              
+              // Try to use Brave's install API if available
+              if (detectedBrowser === 'Brave' && (window as any).chrome && (window as any).chrome.runtime) {
+                try {
+                  // Check if Brave has special install methods
+                  if ((window as any).chrome.runtime.sendMessage) {
+                    (window as any).chrome.runtime.sendMessage({ action: 'install_pwa' });
+                  }
+                } catch (e) {
+                  console.log('PWA: Brave special install method not available');
+                }
+              }
+              
+              // For all Chromium browsers, show guidance to browser install button
+              const installGuide = document.createElement('div');
+              installGuide.innerHTML = `
+                <div style="
+                  position: fixed;
+                  top: 50%;
+                  left: 50%;
+                  transform: translate(-50%, -50%);
+                  background: rgba(0, 0, 0, 0.95);
+                  color: white;
+                  padding: 24px;
+                  border-radius: 16px;
+                  z-index: 70000;
+                  text-align: center;
+                  max-width: 350px;
+                  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+                  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+                ">
+                  <div style="font-size: 24px; margin-bottom: 16px;">📱 Install App</div>
+                  <div style="margin-bottom: 20px; line-height: 1.4;">
+                    Look for the <strong>Install</strong> or <strong>⬇️</strong> button in your ${detectedBrowser} address bar and click it!
+                  </div>
+                  <button onclick="this.parentElement.parentElement.remove()" style="
+                    background: #10b981;
+                    color: white;
+                    border: none;
+                    padding: 12px 24px;
+                    border-radius: 8px;
+                    cursor: pointer;
+                    font-weight: 600;
+                  ">Got it!</button>
+                </div>
+              `;
+              document.body.appendChild(installGuide);
+              
+              return Promise.resolve();
+            },
+            userChoice: Promise.resolve({ outcome: 'accepted', platform: 'web' })
+          };
+          
+          // Set this as our deferred prompt
+          setDeferredPrompt(mockDeferredPrompt as any);
+          
+          // Try to trigger the install prompt immediately
+          await mockDeferredPrompt.prompt();
+          
+        } else {
+          // For non-Chromium browsers
+          console.log(`PWA: Non-Chromium browser detected: ${detectedBrowser}`);
+          
+          // Safari iOS - trigger the Web Share API
+          if (detectedBrowser === 'Safari' && 'share' in navigator) {
+            await (navigator as any).share({
+              title: document.title,
+              text: 'Install this app for the best experience',
+              url: window.location.href
+            });
+          } else {
+            // Show generic install guidance
+            alert(`To install this app in ${detectedBrowser}:\n\n• Look for "Install" or "Add to Home Screen" in your browser menu\n• Or check the address bar for an install button`);
+          }
+        }
+        
+        // Mark that user attempted install
         localStorage.setItem('pwa-install-attempted', Date.now().toString());
         
-        // Create a synthetic install prompt event
-        const syntheticEvent = new CustomEvent('beforeinstallprompt', {
-          cancelable: true
-        });
-        
-        // Add the prompt method
-        (syntheticEvent as any).prompt = () => {
-          return new Promise((resolve) => {
-            console.log('PWA: Synthetic prompt called');
-            resolve(undefined);
-          });
-        };
-        
-        (syntheticEvent as any).userChoice = Promise.resolve({ outcome: 'accepted', platform: 'web' });
-        
-        // Dispatch the event
-        window.dispatchEvent(syntheticEvent);
-        
-        // Wait a moment then trigger real installation methods
-        setTimeout(() => {
-          const userAgent = navigator.userAgent.toLowerCase();
-          
-          if (userAgent.includes('safari') && userAgent.includes('mobile') && !userAgent.includes('chrome')) {
-            // Safari iOS - trigger the Web Share API
-            if ('share' in navigator) {
-              (navigator as any).share({
-                title: document.title,
-                text: 'Install this app for the best experience',
-                url: window.location.href
-              }).then(() => {
-                console.log('PWA: Share dialog opened - user can now select Add to Home Screen');
-              }).catch(() => {
-                console.log('PWA: Share failed or cancelled');
-              });
-            }
-          } else {
-            // For other browsers, dispatch a PWA install ready event
-            const installReadyEvent = new CustomEvent('pwa-install-ready', {
-              detail: { 
-                message: 'Look for the install button in your browser',
-                browser: userAgent.includes('chrome') ? 'chrome' : userAgent.includes('edge') ? 'edge' : 'other'
-              }
-            });
-            window.dispatchEvent(installReadyEvent);
-            
-            // Show a temporary success message
-            const toast = document.createElement('div');
-            toast.style.cssText = `
-              position: fixed;
-              top: 20px;
-              left: 50%;
-              transform: translateX(-50%);
-              background: #10b981;
-              color: white;
-              padding: 12px 24px;
-              border-radius: 8px;
-              z-index: 60000;
-              font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-              font-size: 14px;
-              box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
-              animation: slideDown 0.3s ease-out;
-            `;
-            toast.innerHTML = '✅ Install process initiated! Check your browser for the install option.';
-            
-            const style = document.createElement('style');
-            style.textContent = '@keyframes slideDown { from { transform: translateX(-50%) translateY(-100%); } to { transform: translateX(-50%) translateY(0); } }';
-            document.head.appendChild(style);
-            
-            document.body.appendChild(toast);
-            
-            setTimeout(() => {
-              if (document.body.contains(toast)) {
-                document.body.removeChild(toast);
-              }
-              if (document.head.contains(style)) {
-                document.head.removeChild(style);
-              }
-            }, 4000);
-          }
-        }, 100);
-        
-        // Hide our notification after a delay
+        // Hide notification after attempt
         setTimeout(() => {
           setShowNotification(false);
         }, 1500);
         
       } catch (error) {
-        console.error('PWA: Fallback install method failed:', error);
+        console.error('PWA: Install fallback method failed:', error);
         setShowNotification(false);
       }
     }
