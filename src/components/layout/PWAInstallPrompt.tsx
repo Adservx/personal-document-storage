@@ -29,26 +29,15 @@ const PWAInstallPrompt: React.FC = () => {
       return;
     }
 
-    // Check localStorage for previous dismissal
-    const dismissedBefore = localStorage.getItem('pwa-install-dismissed');
-    if (dismissedBefore) {
-      const dismissedTime = parseInt(dismissedBefore);
-      const daysSinceDismissed = (Date.now() - dismissedTime) / (1000 * 60 * 60 * 24);
-      
-      // Show again after 7 days
-      if (daysSinceDismissed < 7) {
-        setDismissed(true);
-        return;
-      }
-    }
+    // PWA Installation is now REQUIRED - no dismissal allowed
 
     const handleBeforeInstallPrompt = (e: Event) => {
       e.preventDefault();
       const installEvent = e as BeforeInstallPromptEvent;
       setDeferredPrompt(installEvent);
       
-      // Show install prompt immediately when event fires
-      if (!dismissed && !isInstalled) {
+      // Show install prompt immediately when event fires - REQUIRED
+      if (!isInstalled) {
         setShowInstallPrompt(true);
       }
     };
@@ -102,8 +91,8 @@ const PWAInstallPrompt: React.FC = () => {
         'getInstalledRelatedApps' in navigator ||
         window.matchMedia('(display-mode: browser)').matches;
 
-      // Show for ALL capable browsers and devices
-      if (isPWACapable && !dismissed && !isInstalled) {
+      // Show for ALL capable browsers and devices - REQUIRED
+      if (isPWACapable && !isInstalled) {
         setShowInstallPrompt(true);
       }
     }, 100); // 0.1 seconds
@@ -125,7 +114,7 @@ const PWAInstallPrompt: React.FC = () => {
           console.log('PWA: User accepted the install prompt');
         } else {
           console.log('PWA: User dismissed the install prompt');
-          handleDismiss();
+          // No dismissal - installation is required
         }
         
         setDeferredPrompt(null);
@@ -208,24 +197,10 @@ const PWAInstallPrompt: React.FC = () => {
     }
   };
 
-  const handleDismiss = () => {
-    setShowInstallPrompt(false);
-    setDismissed(true);
-    localStorage.setItem('pwa-install-dismissed', Date.now().toString());
-  };
+  // No dismiss functionality - PWA installation is REQUIRED
 
-  const handleLater = () => {
-    setShowInstallPrompt(false);
-    // Show again in current session after 30 minutes
-    setTimeout(() => {
-      if (!isInstalled && deferredPrompt) {
-        setShowInstallPrompt(true);
-      }
-    }, 30 * 60 * 1000);
-  };
-
-  // Don't show if installed or dismissed
-  if (isInstalled || dismissed || !showInstallPrompt || !deferredPrompt) {
+  // Don't show if already installed
+  if (isInstalled || !showInstallPrompt) {
     return null;
   }
 
@@ -241,28 +216,21 @@ const PWAInstallPrompt: React.FC = () => {
           </svg>
         </div>
         <div className="pwa-install-text">
-          <h3>Install SecureDoc Manager</h3>
-          <p>Get the full app experience with offline access and notifications</p>
+          <h3>🚀 Install SecureDoc Manager</h3>
+          <p>This app requires installation for the best experience with offline access, encryption, and security features.</p>
+          <div className="pwa-install-features">
+            <div className="feature-item">🔒 End-to-end encryption</div>
+            <div className="feature-item">📱 Offline document access</div>
+            <div className="feature-item">🔄 Auto-sync across devices</div>
+            <div className="feature-item">⚡ Fast performance</div>
+          </div>
         </div>
         <div className="pwa-install-actions">
           <button 
-            className="pwa-install-btn pwa-install-primary"
+            className="pwa-install-btn pwa-install-primary pwa-install-required"
             onClick={handleInstallClick}
           >
-            Install App
-          </button>
-          <button 
-            className="pwa-install-btn pwa-install-secondary"
-            onClick={handleLater}
-          >
-            Later
-          </button>
-          <button 
-            className="pwa-install-btn pwa-install-dismiss"
-            onClick={handleDismiss}
-            aria-label="Dismiss install prompt"
-          >
-            ×
+            🚀 Install Now - Required
           </button>
         </div>
       </div>
