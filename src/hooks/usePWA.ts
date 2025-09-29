@@ -39,14 +39,21 @@ const usePWA = (): PWAStatus => {
     }));
 
     if (isSupported) {
-      // Only register service worker in production or when explicitly needed
-      const shouldRegisterSW = process.env.NODE_ENV === 'production' || 
-                               localStorage.getItem('enable-sw-dev') === 'true';
+      // Register service worker in production, or in development when testing PWA features
+      const isDev = process.env.NODE_ENV === 'development';
+      const enableSwDev = localStorage.getItem('enable-sw-dev') === 'true';
+      const shouldRegisterSW = process.env.NODE_ENV === 'production' || enableSwDev;
       
       if (shouldRegisterSW) {
         registerServiceWorker();
       } else {
-        console.log('PWA: Service Worker registration skipped in development');
+        console.log('PWA: Service Worker registration skipped in development. Set localStorage.setItem("enable-sw-dev", "true") to enable.');
+        
+        // Still update PWA status for development testing
+        setPWAStatus(prev => ({
+          ...prev,
+          isSupported: true
+        }));
       }
     }
   }, []);

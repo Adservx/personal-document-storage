@@ -4,20 +4,26 @@
   "description": "Professional document storage and management platform with end-to-end encryption",
   "icons": [
     {
-      "src": "favicon.svg",
-      "sizes": "any",
-      "type": "image/svg+xml",
-      "purpose": "any maskable"
-    },
-    {
-      "src": "logo.svg",
+      "src": "icon-192x192.png",
       "sizes": "192x192",
-      "type": "image/svg+xml",
+      "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "logo.svg",
+      "src": "icon-512x512.png",
       "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "favicon.svg",
+      "sizes": "any",
       "type": "image/svg+xml",
       "purpose": "any"
     }
@@ -39,8 +45,9 @@
       "url": "/?action=upload",
       "icons": [
         {
-          "src": "favicon.svg",
-          "sizes": "192x192"
+          "src": "icon-192x192.png",
+          "sizes": "192x192",
+          "type": "image/png"
         }
       ]
     },
@@ -51,8 +58,9 @@
       "url": "/?action=documents",
       "icons": [
         {
-          "src": "favicon.svg",
-          "sizes": "192x192"
+          "src": "icon-192x192.png",
+          "sizes": "192x192",
+          "type": "image/png"
         }
       ]
     }

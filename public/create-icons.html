@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>PWA Icon Generator</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        canvas { border: 1px solid #ccc; margin: 10px; }
+        .controls { margin: 20px 0; }
+        button { padding: 10px 20px; margin: 5px; background: #3b82f6; color: white; border: none; border-radius: 5px; cursor: pointer; }
+        button:hover { background: #2563eb; }
+    </style>
+</head>
+<body>
+    <h1>PWA Icon Generator</h1>
+    <p>This tool will generate the required PNG icons for your PWA.</p>
+    
+    <div class="controls">
+        <button onclick="generateIcons()">Generate Icons</button>
+        <button onclick="downloadIcon(192)">Download 192x192</button>
+        <button onclick="downloadIcon(512)">Download 512x512</button>
+    </div>
+    
+    <div>
+        <h3>192x192 Icon:</h3>
+        <canvas id="icon192" width="192" height="192"></canvas>
+        
+        <h3>512x512 Icon:</h3>
+        <canvas id="icon512" width="512" height="512"></canvas>
+    </div>
+
+    <script>
+        function generateIcon(canvas, size) {
+            const ctx = canvas.getContext('2d');
+            
+            // Create gradient background
+            const gradient = ctx.createLinearGradient(0, 0, size, size);
+            gradient.addColorStop(0, '#3b82f6');
+            gradient.addColorStop(1, '#6366f1');
+            
+            // Fill background with gradient
+            ctx.fillStyle = gradient;
+            ctx.roundRect(0, 0, size, size, size * 0.2);
+            ctx.fill();
+            
+            // Draw document icon
+            ctx.fillStyle = 'white';
+            
+            // Main document rectangle
+            const docWidth = size * 0.6;
+            const docHeight = size * 0.15;
+            const docX = size * 0.2;
+            const docY = size * 0.3;
+            
+            ctx.roundRect(docX, docY, docWidth, docHeight, size * 0.02);
+            ctx.fill();
+            
+            // Document lines
+            ctx.globalAlpha = 0.8;
+            ctx.roundRect(docX, docY + docHeight + size * 0.05, docWidth * 0.67, size * 0.08, size * 0.01);
+            ctx.fill();
+            
+            ctx.globalAlpha = 0.6;
+            ctx.roundRect(docX, docY + docHeight + size * 0.17, docWidth * 0.5, size * 0.08, size * 0.01);
+            ctx.fill();
+            
+            ctx.globalAlpha = 1.0;
+        }
+
+        function generateIcons() {
+            const canvas192 = document.getElementById('icon192');
+            const canvas512 = document.getElementById('icon512');
+            
+            generateIcon(canvas192, 192);
+            generateIcon(canvas512, 512);
+            
+            console.log('Icons generated! Use the download buttons to save them.');
+        }
+
+        function downloadIcon(size) {
+            const canvas = document.getElementById(`icon${size}`);
+            const link = document.createElement('a');
+            link.download = `icon-${size}x${size}.png`;
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        }
+
+        // Add roundRect polyfill for older browsers
+        if (!CanvasRenderingContext2D.prototype.roundRect) {
+            CanvasRenderingContext2D.prototype.roundRect = function(x, y, width, height, radius) {
+                this.beginPath();
+                this.moveTo(x + radius, y);
+                this.lineTo(x + width - radius, y);
+                this.quadraticCurveTo(x + width, y, x + width, y + radius);
+                this.lineTo(x + width, y + height - radius);
+                this.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+                this.lineTo(x + radius, y + height);
+                this.quadraticCurveTo(x, y + height, x, y + height - radius);
+                this.lineTo(x, y + radius);
+                this.quadraticCurveTo(x, y, x + radius, y);
+                this.closePath();
+            };
+        }
+
+        // Auto-generate on page load
+        window.onload = generateIcons;
+    </script>
+</body>
+</html>
