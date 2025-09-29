@@ -39,12 +39,29 @@ const usePWA = (): PWAStatus => {
     }));
 
     if (isSupported) {
-      registerServiceWorker();
+      // Only register service worker in production or when explicitly needed
+      const shouldRegisterSW = process.env.NODE_ENV === 'production' || 
+                               localStorage.getItem('enable-sw-dev') === 'true';
+      
+      if (shouldRegisterSW) {
+        registerServiceWorker();
+      } else {
+        console.log('PWA: Service Worker registration skipped in development');
+      }
     }
   }, []);
 
   const registerServiceWorker = async () => {
     try {
+      // Clear any existing service worker registrations to avoid conflicts
+      const existingRegistrations = await navigator.serviceWorker.getRegistrations();
+      for (const registration of existingRegistrations) {
+        if (registration.scope.includes(window.location.origin)) {
+          console.log('PWA: Unregistering existing service worker');
+          await registration.unregister();
+        }
+      }
+
       const registration = await navigator.serviceWorker.register('/sw.js', {
         scope: '/',
         updateViaCache: 'none'
@@ -102,6 +119,17 @@ const usePWA = (): PWAStatus => {
 
     } catch (error) {
       console.error('PWA: Service Worker registration failed:', error);
+      
+      // In development mode, this is often expected and not critical
+      if (window.location.hostname === 'localhost') {
+        console.info('PWA: Service Worker registration failed in development - this is often normal');
+      }
+      
+      // Still set the PWA as supported even if SW registration fails
+      setPWAStatus(prev => ({
+        ...prev,
+        isSupported: true // PWA features can still work without SW
+      }));
     }
   };
 

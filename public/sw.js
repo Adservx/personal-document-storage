@@ -1,15 +1,17 @@
 const CACHE_NAME = 'securedoc-v1.0.0';
 const RUNTIME_CACHE = 'securedoc-runtime';
 
-// Assets to cache immediately
+// Detect environment
+const isDevelopment = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
+
+// Assets to cache immediately (development-friendly)
 const PRECACHE_URLS = [
   '/',
-  '/static/js/bundle.js',
-  '/static/css/main.css',
   '/manifest.json',
   '/favicon.svg',
-  '/logo.svg',
-  'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap'
+  '/logo.svg'
+  // Note: CSS and JS bundles are dynamically generated in development
+  // They will be cached on-demand via the fetch event handler
 ];
 
 // Install event - cache essential resources
@@ -18,14 +20,31 @@ self.addEventListener('install', event => {
     caches.open(CACHE_NAME)
       .then(cache => {
         console.log('SW: Precaching resources');
-        return cache.addAll(PRECACHE_URLS.map(url => new Request(url, { credentials: 'same-origin' })));
+        // Cache resources individually to avoid single failure breaking everything
+        return Promise.allSettled(
+          PRECACHE_URLS.map(url => 
+            fetch(new Request(url, { credentials: 'same-origin' }))
+              .then(response => {
+                if (response.ok) {
+                  return cache.put(url, response);
+                } else {
+                  console.warn(`SW: Failed to cache ${url}: ${response.status}`);
+                }
+              })
+              .catch(error => {
+                console.warn(`SW: Failed to fetch ${url}:`, error);
+              })
+          )
+        );
       })
       .then(() => {
-        console.log('SW: Skip waiting');
+        console.log('SW: Precaching completed, skip waiting');
         return self.skipWaiting();
       })
       .catch(error => {
         console.error('SW: Precaching failed:', error);
+        // Still skip waiting to allow SW to activate
+        return self.skipWaiting();
       })
   );
 });

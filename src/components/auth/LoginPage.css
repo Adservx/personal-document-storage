@@ -158,6 +158,18 @@
   transition: all var(--transition-fast);
 }
 
+.google-signin-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  pointer-events: none;
+  background: var(--bg-secondary);
+}
+
+.google-signin-btn:disabled:hover {
+  transform: none;
+  box-shadow: var(--shadow-md);
+}
+
 /* Professional Loading Animation */
 .login-loading {
   position: absolute;
