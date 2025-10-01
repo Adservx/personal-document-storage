@@ -64,3 +64,37 @@
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
   }
 }
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .encryption-badge {
+    font-size: 0.6875rem;
+    padding: 0.125rem 0.3125rem;
+  }
+  
+  .encryption-icon {
+    font-size: 0.7em;
+  }
+}
+
+@media (max-width: 480px) {
+  .encryption-badge {
+    font-size: 0.625rem;
+    padding: 2px 5px;
+  }
+  
+  .encryption-text {
+    letter-spacing: 0;
+  }
+}
+
+@media (max-width: 360px) {
+  .encryption-badge {
+    font-size: 0.5625rem;
+    padding: 2px 4px;
+  }
+  
+  .encryption-icon {
+    font-size: 0.65em;
+  }
+}
