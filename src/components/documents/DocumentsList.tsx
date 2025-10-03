@@ -17,7 +17,6 @@ export const DocumentsList: React.FC<DocumentsListProps> = ({ refreshTrigger }) 
   const { addProgress, updateProgress } = useProgress();
   const [documents, setDocuments] = useState<Document[]>([]);
   const [loading, setLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('');
   // Removed viewMode state - using list view only
 
@@ -165,11 +164,10 @@ export const DocumentsList: React.FC<DocumentsListProps> = ({ refreshTrigger }) 
   // Filtered documents (sorted by date descending by default)
   const filteredDocuments = useMemo(() => {
     return documents.filter(doc => {
-      const matchesSearch = doc.name.toLowerCase().includes(searchQuery.toLowerCase());
       const matchesCategory = !selectedCategory || doc.category === selectedCategory;
-      return matchesSearch && matchesCategory;
+      return matchesCategory;
     });
-  }, [documents, searchQuery, selectedCategory]);
+  }, [documents, selectedCategory]);
 
 
   if (loading) {
@@ -202,28 +200,6 @@ export const DocumentsList: React.FC<DocumentsListProps> = ({ refreshTrigger }) 
         </div>
 
         <div className="documents-controls">
-          <div className="search-section">
-            <div className="search-input-container">
-              <span className="search-icon">🔍</span>
-              <input
-                type="text"
-                placeholder="Search documents..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="search-input input focus-ring"
-              />
-              {searchQuery && (
-                <button
-                  onClick={() => setSearchQuery('')}
-                  className="clear-search-btn btn-ghost"
-                  title="Clear search"
-                >
-                  ✕
-                </button>
-              )}
-            </div>
-          </div>
-
           <div className="filter-controls">
             <select
               value={selectedCategory}
@@ -266,21 +242,12 @@ export const DocumentsList: React.FC<DocumentsListProps> = ({ refreshTrigger }) 
           <div className="empty-search-icon">🔍</div>
           <h3>No documents found</h3>
           <p>
-            {searchQuery && selectedCategory 
-              ? `No documents match "${searchQuery}" in the ${getDocumentCategory(selectedCategory)?.label} category`
-              : searchQuery 
-              ? `No documents match "${searchQuery}"`
-              : selectedCategory
+            {selectedCategory
               ? `No documents in the ${getDocumentCategory(selectedCategory)?.label} category`
-              : 'Try adjusting your search or filters'
+              : 'Try adjusting your filters'
             }
           </p>
           <div className="empty-search-actions">
-            {searchQuery && (
-              <button onClick={() => setSearchQuery('')} className="btn btn-secondary">
-                Clear Search
-              </button>
-            )}
             {selectedCategory && (
               <button onClick={() => setSelectedCategory('')} className="btn btn-secondary">
                 Show All Categories
