@@ -799,11 +799,27 @@
   .document-actions {
     width: 100%;
     justify-content: flex-end;
+    gap: var(--space-3);
+    margin-top: var(--space-3);
   }
   
   .document-actions .btn {
     padding: var(--space-2) var(--space-3);
     font-size: var(--text-sm);
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .document-actions .btn-primary {
+    flex: 0 1 auto;
+    max-width: 140px;
+  }
+  
+  .document-actions .btn-secondary {
+    width: 44px;
+    height: 44px;
   }
 }
 
@@ -884,26 +900,34 @@
   .document-actions {
     width: 100%;
     justify-content: stretch;
-    margin-top: var(--space-2);
-    gap: var(--space-2);
+    margin-top: var(--space-3);
+    gap: var(--space-3);
   }
   
   .document-actions .btn-primary {
-    flex: 1;
-    padding: var(--space-2) var(--space-3);
-    font-size: var(--text-xs);
+    flex: 0 1 auto;
+    padding: var(--space-3) var(--space-4);
+    font-size: var(--text-sm);
     white-space: nowrap;
     min-width: 0;
+    max-width: 130px;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
   
   .document-actions .btn-secondary {
-    width: 36px;
-    height: 36px;
+    width: 44px;
+    height: 44px;
     flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
   
   .btn-icon {
-    font-size: var(--text-sm);
+    font-size: var(--text-base);
   }
   
   .icon-symbol {
@@ -958,23 +982,37 @@
     font-size: 0.5625rem;
   }
   
+  .document-actions {
+    gap: var(--space-2);
+    margin-top: var(--space-3);
+  }
+  
   .document-actions .btn-primary {
-    font-size: 0.625rem;
-    padding: var(--space-1) var(--space-2);
+    font-size: var(--text-xs);
+    padding: var(--space-2) var(--space-3);
+    min-height: 40px;
+    max-width: 120px;
+    flex: 0 1 auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
   
   .document-actions .btn-primary span:not(.btn-icon) {
     display: inline;
-    font-size: 0.625rem;
+    font-size: var(--text-xs);
   }
   
   .document-actions .btn-secondary {
-    width: 32px;
-    height: 32px;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
   
   .btn-icon {
-    font-size: 0.75rem;
+    font-size: var(--text-sm);
   }
   
   .icon-symbol {
@@ -983,5 +1021,34 @@
   
   .file-type-label {
     font-size: 0.4375rem;
+  }
+}
+
+/* Mobile Touch Interaction Improvements */
+@media (max-width: 768px) {
+  .document-actions .btn:active {
+    transform: scale(0.95);
+    transition: transform 0.1s ease;
+  }
+  
+  .document-actions .btn-primary:active {
+    background: linear-gradient(135deg, var(--primary-600), var(--primary-700));
+  }
+  
+  .document-actions .btn-secondary:active {
+    background: var(--accent-rose);
+    color: var(--text-primary);
+    border-color: var(--accent-rose);
+  }
+  
+  /* Ensure proper touch target spacing */
+  .document-actions {
+    padding: var(--space-1) 0;
+  }
+  
+  /* Improve text readability on mobile */
+  .document-actions .btn-primary span:not(.btn-icon) {
+    font-weight: var(--font-weight-medium);
+    letter-spacing: 0.25px;
   }
 }
