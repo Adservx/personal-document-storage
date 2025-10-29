@@ -5,7 +5,7 @@ This setup keeps your Supabase free project active by pinging the database daily
 ## What's Been Set Up
 
 ### 1. Health Check API Endpoint
-**File:** `api/health.ts`
+**File:** `api/health.js`
 
 - Lightweight serverless function that queries your Supabase DB
 - Returns `200` if DB is healthy, `503` if not
@@ -21,14 +21,7 @@ This setup keeps your Supabase free project active by pinging the database daily
 
 ## Deployment Steps
 
-### Step 1: Install Dependencies
-```bash
-npm install --save-dev @vercel/node
-```
-
-This adds TypeScript types for Vercel serverless functions.
-
-### Step 2: Set Environment Variables in Vercel
+### Step 1: Set Environment Variables in Vercel
 
 Your cron job needs access to Supabase credentials. In Vercel Dashboard:
 
@@ -40,7 +33,7 @@ Your cron job needs access to Supabase credentials. In Vercel Dashboard:
 
 **Important:** Make sure these are set for **Production**, **Preview**, and **Development** environments.
 
-### Step 3: Deploy to Vercel
+### Step 2: Deploy to Vercel
 ```bash
 git add .
 git commit -m "Add Vercel cron job for Supabase health check"
@@ -49,7 +42,7 @@ git push
 
 Vercel will auto-deploy if you have GitHub integration enabled.
 
-### Step 4: Verify Cron Job Setup
+### Step 3: Verify Cron Job Setup
 
 1. Go to **Vercel Dashboard** → **Your Project** → **Settings** → **Cron Jobs**
 2. You should see:
@@ -57,7 +50,7 @@ Vercel will auto-deploy if you have GitHub integration enabled.
    - **Schedule:** `0 0 * * *` (daily at midnight UTC)
    - **Status:** Active
 
-### Step 5: Test the Cron Job
+### Step 4: Test the Cron Job
 
 #### Manual Test from Vercel Dashboard:
 1. In **Cron Jobs** settings, click **Run** next to your cron job
@@ -108,7 +101,7 @@ Edit `vercel.json` to adjust frequency:
 If you added `CRON_SECRET` environment variable, the endpoint will reject requests without the proper header. This prevents unauthorized pings.
 
 ### Change the Database Query
-Edit `api/health.ts` if you want to query a different table:
+Edit `api/health.js` if you want to query a different table:
 
 ```typescript
 const { data, error } = await supabase

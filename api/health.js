@@ -1,10 +1,6 @@
-import { createClient } from '@supabase/supabase-js';
-import type { VercelRequest, VercelResponse } from '@vercel/node';
+const { createClient } = require('@supabase/supabase-js');
 
-export default async function handler(
-  req: VercelRequest,
-  res: VercelResponse
-) {
+module.exports = async function handler(req, res) {
   // Only allow GET requests
   if (req.method !== 'GET') {
     return res.status(405).json({ error: 'Method not allowed' });
@@ -16,8 +12,8 @@ export default async function handler(
     return res.status(401).json({ error: 'Unauthorized' });
   }
 
-  const supabaseUrl = process.env.REACT_APP_SUPABASE_URL?.trim().replace(/\/+$/, '');
-  const supabaseKey = process.env.REACT_APP_SUPABASE_ANON_KEY?.trim();
+  const supabaseUrl = process.env.REACT_APP_SUPABASE_URL ? process.env.REACT_APP_SUPABASE_URL.trim().replace(/\/+$/, '') : '';
+  const supabaseKey = process.env.REACT_APP_SUPABASE_ANON_KEY ? process.env.REACT_APP_SUPABASE_ANON_KEY.trim() : '';
 
   if (!supabaseUrl || !supabaseKey) {
     return res.status(500).json({ 
