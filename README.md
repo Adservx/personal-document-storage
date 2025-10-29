@@ -4,6 +4,8 @@
 
 A modern, secure, and user-friendly document management system built with React, TypeScript, and Supabase. Designed for individuals and professionals who need secure, organized, and accessible document storage.
 
+**📱 Now available as a native Android app using Capacitor!** See [ANDROID_QUICKSTART.md](ANDROID_QUICKSTART.md) to get started.
+
 ## ✨ Features
 
 ### 🔐 Security & Authentication
@@ -220,6 +222,21 @@ npm run build
 1. Build the project: `npm run build`
 2. Upload `build/` folder to Netlify
 3. Set environment variables in Netlify dashboard
+
+### Deploy as Android App
+
+See [ANDROID_QUICKSTART.md](ANDROID_QUICKSTART.md) for quick instructions or [CAPACITOR_GUIDE.md](CAPACITOR_GUIDE.md) for complete documentation.
+
+**Quick steps:**
+```bash
+# 1. Sync to Android
+npm run android:sync
+
+# 2. Open in Android Studio
+npm run android
+
+# 3. Build APK/AAB from Android Studio
+```
 
 ## 🐛 Troubleshooting
 

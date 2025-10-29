@@ -3,6 +3,7 @@ import { onAuthStateChanged, signInWithPopup, signInWithRedirect, getRedirectRes
 import { auth } from '../firebase';
 import { useState, useEffect } from 'react';
 import type { User } from '../types';
+import { Capacitor } from '@capacitor/core';
 
 interface AuthContextType {
   user: User | null;
@@ -41,29 +42,41 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       provider.addScope('email');
       provider.addScope('profile');
       
-      // Try popup first, but fallback to redirect if blocked
-      try {
-        console.log('Attempting popup authentication...');
-        const result = await signInWithPopup(auth, provider);
-        console.log('Google sign-in successful:', result.user);
-        setIsAuthenticating(false);
-      } catch (popupError: any) {
-        console.log('Popup failed, trying redirect method...', popupError.code);
-        
-        if (popupError.code === 'auth/popup-blocked' || 
-            popupError.code === 'auth/popup-closed-by-user') {
-          
-          // Use redirect method as fallback
-          console.log('Using redirect authentication as fallback...');
-          await signInWithRedirect(auth, provider);
-          // Note: signInWithRedirect doesn't return immediately - 
-          // the result will be handled by getRedirectResult in useEffect
-          // Keep isAuthenticating true for redirect flow
-          
-        } else {
-          // Re-throw other popup errors
+      const isNative = Capacitor.isNativePlatform();
+      console.log('Platform detected:', isNative ? 'Native (Capacitor)' : 'Web');
+      
+      // On native platforms (Android/iOS), always use redirect
+      // On web, try popup first with fallback to redirect
+      if (isNative) {
+        console.log('Using redirect authentication for native platform...');
+        await signInWithRedirect(auth, provider);
+        // Note: signInWithRedirect doesn't return immediately - 
+        // the result will be handled by getRedirectResult in useEffect
+      } else {
+        // Web platform - try popup first, but fallback to redirect if blocked
+        try {
+          console.log('Attempting popup authentication...');
+          const result = await signInWithPopup(auth, provider);
+          console.log('Google sign-in successful:', result.user);
           setIsAuthenticating(false);
-          throw popupError;
+        } catch (popupError: any) {
+          console.log('Popup failed, trying redirect method...', popupError.code);
+          
+          if (popupError.code === 'auth/popup-blocked' || 
+              popupError.code === 'auth/popup-closed-by-user') {
+            
+            // Use redirect method as fallback
+            console.log('Using redirect authentication as fallback...');
+            await signInWithRedirect(auth, provider);
+            // Note: signInWithRedirect doesn't return immediately - 
+            // the result will be handled by getRedirectResult in useEffect
+            // Keep isAuthenticating true for redirect flow
+            
+          } else {
+            // Re-throw other popup errors
+            setIsAuthenticating(false);
+            throw popupError;
+          }
         }
       }
     } catch (error: any) {

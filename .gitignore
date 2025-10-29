@@ -55,3 +55,15 @@ temp/
 # Cache
 .cache/
 .vercel
+
+# Capacitor
+android/app/build/
+android/build/
+android/.gradle/
+android/.idea/
+android/local.properties
+android/captures/
+android/*.iml
+android/app/release/
+*.jks
+*.keystore
