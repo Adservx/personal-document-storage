@@ -30,10 +30,8 @@ export const DocumentsList: React.FC<DocumentsListProps> = ({ refreshTrigger }) 
     try {
       setLoading(true);
       
-      // Use Firebase user ID directly since we're using Firebase auth
-      const userId = user.id;
-      
-      console.log('📋 Fetching documents for user:', userId);
+      console.log('📋 Fetching documents for user:', user.id);
+      // Filter by user_id to get only the current user's documents
       const { data, error } = await supabase
         .from('documents')
         .select(`
@@ -42,8 +40,8 @@ export const DocumentsList: React.FC<DocumentsListProps> = ({ refreshTrigger }) 
           encryption_metadata,
           encryption_version
         `)
-        .eq('user_id', userId)
-        .order('created_at', { ascending: false});
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
       
       if (error) {
         console.error('Error fetching documents:', error);

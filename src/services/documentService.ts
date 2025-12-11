@@ -1,4 +1,4 @@
-import { supabase } from '../supabaseClient';
+import { createAuthenticatedRequest } from '../supabaseClient';
 import { auth } from '../firebase';
 import type { Document, DocumentCategory, DocumentFilter, ApiResponse } from '../types';
 import { generateFileName } from '../utils/helpers';
@@ -9,11 +9,11 @@ export class DocumentService {
       const user = auth.currentUser;
       if (!user) throw new Error('User not authenticated');
 
-      let query = supabase
-        .from('documents')
-        .select('*')
-        .eq('user_id', user.uid)
-        .order('created_at', { ascending: false });
+      return await createAuthenticatedRequest(async (supabase) => {
+        let query = supabase
+          .from('documents')
+          .select('*')
+          .order('created_at', { ascending: false });
 
       if (filter?.category) {
         query = query.eq('category', filter.category);
@@ -31,20 +31,21 @@ export class DocumentService {
         query = query.eq('file_type', filter.fileType);
       }
 
-      if (filter?.dateRange) {
-        query = query
-          .gte('created_at', filter.dateRange.start.toISOString())
-          .lte('created_at', filter.dateRange.end.toISOString());
-      }
+        if (filter?.dateRange) {
+          query = query
+            .gte('created_at', filter.dateRange.start.toISOString())
+            .lte('created_at', filter.dateRange.end.toISOString());
+        }
 
-      const { data, error } = await query;
+        const { data, error } = await query;
 
-      if (error) throw error;
+        if (error) throw error;
 
-      return {
-        status: 'success',
-        data: data || []
-      };
+        return {
+          status: 'success',
+          data: data || []
+        };
+      });
     } catch (error) {
       return {
         status: 'error',
@@ -62,54 +63,56 @@ export class DocumentService {
     }
   ): Promise<ApiResponse<Document>> {
     try {
-      const fileName = generateFileName(file.name, category);
-      const filePath = `${category}/${fileName}`;
-
-      // Upload file to storage
-      const { error: uploadError } = await supabase.storage
-        .from('documents')
-        .upload(filePath, file, {
-          contentType: file.type || 'application/octet-stream',
-          upsert: false
-        });
-
-      if (uploadError) throw uploadError;
-
-      // Get public URL
-      const { data: urlData } = supabase.storage
-        .from('documents')
-        .getPublicUrl(filePath);
-
       const user = auth.currentUser;
       if (!user) throw new Error('User not authenticated');
 
-      // Save document metadata
-      const documentData = {
-        name: file.name,
-        category,
-        file_path: filePath,
-        file_url: urlData.publicUrl,
-        file_type: file.type,
-        file_size: file.size,
-        description: metadata?.description || null,
-        tags: metadata?.tags || null,
-        version: 1,
-        access_level: 'private' as const,
-        user_id: user.uid
-      };
+      return await createAuthenticatedRequest(async (supabase) => {
+        const fileName = generateFileName(file.name, category);
+        const filePath = `${category}/${fileName}`;
 
-      const { data, error: dbError } = await supabase
-        .from('documents')
-        .insert(documentData)
-        .select()
-        .single();
+        // Upload file to storage
+        const { error: uploadError } = await supabase.storage
+          .from('documents')
+          .upload(filePath, file, {
+            contentType: file.type || 'application/octet-stream',
+            upsert: false
+          });
 
-      if (dbError) throw dbError;
+        if (uploadError) throw uploadError;
 
-      return {
-        status: 'success',
-        data: data as Document
-      };
+        // Get public URL
+        const { data: urlData } = supabase.storage
+          .from('documents')
+          .getPublicUrl(filePath);
+
+        // Save document metadata
+        const documentData = {
+          name: file.name,
+          category,
+          file_path: filePath,
+          file_url: urlData.publicUrl,
+          file_type: file.type,
+          file_size: file.size,
+          description: metadata?.description || null,
+          tags: metadata?.tags || null,
+          version: 1,
+          access_level: 'private' as const,
+          user_id: user.uid
+        };
+
+        const { data, error: dbError } = await supabase
+          .from('documents')
+          .insert(documentData)
+          .select()
+          .single();
+
+        if (dbError) throw dbError;
+
+        return {
+          status: 'success',
+          data: data as Document
+        };
+      });
     } catch (error) {
       return {
         status: 'error',
@@ -120,16 +123,21 @@ export class DocumentService {
 
   static async downloadDocument(document: Document): Promise<ApiResponse<Blob>> {
     try {
-      const { data, error } = await supabase.storage
-        .from('documents')
-        .download(document.file_path);
+      const user = auth.currentUser;
+      if (!user) throw new Error('User not authenticated');
 
-      if (error) throw error;
+      return await createAuthenticatedRequest(async (supabase) => {
+        const { data, error } = await supabase.storage
+          .from('documents')
+          .download(document.file_path);
 
-      return {
-        status: 'success',
-        data
-      };
+        if (error) throw error;
+
+        return {
+          status: 'success',
+          data
+        };
+      });
     } catch (error) {
       return {
         status: 'error',
@@ -140,33 +148,38 @@ export class DocumentService {
 
   static async deleteDocument(documentId: string): Promise<ApiResponse<void>> {
     try {
-      // Get document info first
-      const { data: document, error: fetchError } = await supabase
-        .from('documents')
-        .select('file_path')
-        .eq('id', documentId)
-        .single();
+      const user = auth.currentUser;
+      if (!user) throw new Error('User not authenticated');
 
-      if (fetchError) throw fetchError;
+      return await createAuthenticatedRequest(async (supabase) => {
+        // Get document info first
+        const { data: document, error: fetchError } = await supabase
+          .from('documents')
+          .select('file_path')
+          .eq('id', documentId)
+          .single();
 
-      // Delete from storage
-      const { error: storageError } = await supabase.storage
-        .from('documents')
-        .remove([document.file_path]);
+        if (fetchError) throw fetchError;
 
-      if (storageError) throw storageError;
+        // Delete from storage
+        const { error: storageError } = await supabase.storage
+          .from('documents')
+          .remove([document.file_path]);
 
-      // Delete from database
-      const { error: dbError } = await supabase
-        .from('documents')
-        .delete()
-        .eq('id', documentId);
+        if (storageError) throw storageError;
 
-      if (dbError) throw dbError;
+        // Delete from database
+        const { error: dbError } = await supabase
+          .from('documents')
+          .delete()
+          .eq('id', documentId);
 
-      return {
-        status: 'success'
-      };
+        if (dbError) throw dbError;
+
+        return {
+          status: 'success'
+        };
+      });
     } catch (error) {
       return {
         status: 'error',
@@ -180,19 +193,24 @@ export class DocumentService {
     updates: Partial<Pick<Document, 'name' | 'description' | 'tags' | 'category'>>
   ): Promise<ApiResponse<Document>> {
     try {
-      const { data, error } = await supabase
-        .from('documents')
-        .update({ ...updates, updated_at: new Date().toISOString() })
-        .eq('id', documentId)
-        .select()
-        .single();
+      const user = auth.currentUser;
+      if (!user) throw new Error('User not authenticated');
 
-      if (error) throw error;
+      return await createAuthenticatedRequest(async (supabase) => {
+        const { data, error } = await supabase
+          .from('documents')
+          .update({ ...updates, updated_at: new Date().toISOString() })
+          .eq('id', documentId)
+          .select()
+          .single();
 
-      return {
-        status: 'success',
-        data: data as Document
-      };
+        if (error) throw error;
+
+        return {
+          status: 'success',
+          data: data as Document
+        };
+      });
     } catch (error) {
       return {
         status: 'error',
